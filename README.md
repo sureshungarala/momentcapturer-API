@@ -1,4 +1,8 @@
-#   https://serverless.com/blog/serverless-api-gateway-domain/
+#   Serves APIs for momentcapturer.com via sub-domain api.momentcapturer.com
+
+##  APIs => Lambda & API Gateway
+
+###   https://serverless.com/blog/serverless-api-gateway-domain/
 
 *   For serverless config, refer TMC repo.
 
