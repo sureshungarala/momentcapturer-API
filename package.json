@@ -1,0 +1,19 @@
+{
+  "name": "api",
+  "version": "1.0.0",
+  "description": "Serves APIs for momentcapturer.com over api.momentcapturer.com",
+  "main": "handler.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "API-Gateway",
+    "Lambda",
+    "Serving-over-custom_domain"
+  ],
+  "author": "Suresh Ungarala (iamuvvsuresh@gmail.com)",
+  "license": "ISC",
+  "devDependencies": {
+    "serverless-domain-manager": "^3.3.0"
+  }
+}
