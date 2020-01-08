@@ -22,7 +22,7 @@ org: venkatsuresh
 
 provider:
   name: aws
-  runtime: nodejs12.x
+  runtime: nodejs10.x
   logs:
     restApi: true
 
@@ -83,6 +83,15 @@ functions:
       - http:
           path: goodbye
           method: get
+  csr:
+    handler: index.csr
+    memorySize: 1536
+    timeout: 10
+    events:
+      - http:
+          path: csr
+          method: post
+          cors: true
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
 #    Check the event documentation for details

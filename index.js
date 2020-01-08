@@ -9,14 +9,15 @@ const sharp = require('sharp');
 
 module.exports.csr = (event, context, callback) => {
 
-    callback(null, {
-        "statusCode": 200,
-        "headers": {
-            "Access-Control-Allow-Origin": "*"
-        },
-        "body": JSON.stringify({
+    const response = {
+        statusCode: 200,
+        // "headers": {
+        //     "Access-Control-Allow-Origin": "*"
+        // },
+        body: JSON.stringify({
             message: "Executed CSR.",
             input: event
         }, null, 2)
-    });
+    };
+    callback(null, response);
 }
