@@ -21,7 +21,7 @@ module.exports.goodbye = async event => {
     statusCode: 200,
     body: JSON.stringify(
       {
-        message: 'Good Bye from Serverless',
+        message: 'Good Bye! from Serverless',
         input: event
       },
       null,

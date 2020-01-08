@@ -22,7 +22,9 @@ org: venkatsuresh
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
+  logs:
+    restApi: true
 
 plugins:
   - serverless-domain-manager
