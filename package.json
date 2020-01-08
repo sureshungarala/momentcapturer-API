@@ -17,7 +17,9 @@
     "serverless-domain-manager": "^3.3.0"
   },
   "dependencies": {
+    "@types/aws-sdk": "^2.7.0",
     "@types/sharp": "^0.23.1",
+    "aws-sdk": "^2.599.0",
     "sharp": "^0.23.4"
   }
 }
