@@ -22,7 +22,7 @@ module.exports.csr = (event, context, callback) => {
     const fileName = fileNameWithExt.substr(0, fileNameWithExt.lastIndexOf('.')),
         decoded = Buffer.from(params.image.replace(/^data:image\/\w+;base64,/, ""), 'base64');
 
-    let executionCount = 1;
+    let executionCount = 0;
 
     const Item = {
         [columns.category.name]: {
@@ -145,7 +145,7 @@ module.exports.csr = (event, context, callback) => {
     }
 
     async function executeCSR() {
-        let processed = false;
+        executionCount++;
         try {
             const handheldResp = await compressAndStore(config.HANDHELD);
             if (handheldResp === config.SUCCESS) {
@@ -155,13 +155,16 @@ module.exports.csr = (event, context, callback) => {
                     originalResp === config.SUCCESS && await record();
                 }
             }
-            processed = true;
+            respond(true);
         } catch (err) {
-            processed = false;
-            console.log('CSR failed with error ', err);
+            console.log('CSR failed with error ', err, executionCount);
+            if (executionCount < Math.round(config.MAX_EXECUTION_COUNT)) {
+                executeCSR();
+            } else {
+                respond(false);
+            }
         } finally {
             console.log(`Executed CSR.`);
-            respond(processed);
         }
     }
 
