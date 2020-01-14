@@ -41,8 +41,8 @@ module.exports.csr = (event, context, callback) => {
                 }
             }
         },
-        [columns.moment.name]: {
-            [columns.moment.type]: ""
+        [columns.original.name]: {
+            [columns.original.type]: ""
         },
         [columns.description.name]: {
             [columns.description.type]: description
@@ -99,7 +99,7 @@ module.exports.csr = (event, context, callback) => {
                         if (device === config.HANDHELD || device === config.TABLET) {
                             Item[columns.srcSet.name][columns.srcSet.type][device === config.HANDHELD ? config.HANDHELD_MAX_WIDTH : config.TABLET_MAX_WIDTH][columns.srcSet.subType] = data.Location;
                         } else if (device === config.ORIGINAL) {
-                            Item[columns.moment.name][columns.moment.type] = data.Location;
+                            Item[columns.original.name][columns.original.type] = data.Location;
                         }
                         console.log(`Successfully uploaded ${Key} to s3 with metadata `, data);
                         defer.resolve(config.SUCCESS);
@@ -124,8 +124,10 @@ module.exports.csr = (event, context, callback) => {
         }, (err, data) => {
             if (err) {
                 console.log(`Failed to record item to DynamoDB with error `, err);
+                defer.reject(config.FAILURE);
             } else {
                 console.log(`Successfully recorded item into DynamoDB with metadata `, data);
+                defer.resolve(config.SUCCESS);
             }
         });
         return defer.promise;

@@ -12,8 +12,8 @@
         "type": "M",
         "subType": "S"
     },
-    "moment": {
-        "name": "moment",
+    "original": {
+        "name": "original",
         "type": "S"
     },
     "description": {

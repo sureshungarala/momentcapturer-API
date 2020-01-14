@@ -2,6 +2,7 @@
 
 const AWS = require('aws-sdk');
 const config = require('./config.json');
+const columns = require('./columns.json');
 
 module.exports.createTable = (event, context, callback) => {
 
@@ -16,11 +17,11 @@ module.exports.createTable = (event, context, callback) => {
         TableName: config.AWS_DYNAMODB_TABLE,
         AttributeDefinitions: [
             {
-                AttributeName: "category",
+                AttributeName: columns.category.name,
                 AttributeType: "S"
             },
             {
-                AttributeName: "uploadTime",
+                AttributeName: columns.updateTime.name,
                 AttributeType: "N"
             }
             // {
@@ -28,7 +29,7 @@ module.exports.createTable = (event, context, callback) => {
             //     AttributeType: "B"
             // },
             // {
-            //     AttributeName: "moment",
+            //     AttributeName: "original",
             //     AttributeType: "S"
             // },
             // {
@@ -46,11 +47,11 @@ module.exports.createTable = (event, context, callback) => {
         ],
         KeySchema: [
             {
-                AttributeName: "category",
+                AttributeName: columns.category.name,
                 KeyType: "HASH"
             },
             {
-                AttributeName: "uploadTime",
+                AttributeName: columns.updateTime.name,
                 KeyType: 'RANGE'
             }
         ],
@@ -89,8 +90,61 @@ module.exports.createTable = (event, context, callback) => {
             console.log('Unable to create table. Error: ', err);
             respond(false);
         } else {
-            console.log('Created table. table metadata: ', data);
+            console.log('Created table. table metadata: ');
             respond(true);
         }
     })
-}
+};
+
+module.exports.getData = (event, context, callback) => {
+    console.log('event ', event);
+    const params = event.queryStringParameters,
+        category = params.category;
+
+    console.log('params ', params);
+
+    let dynamoDB = new AWS.DynamoDB({
+        accessKeyId: config.AWS_ACCESS_KEY_ID,
+        secretAccessKey: config.AWS_SECRET_ACCESS_KEY,
+        region: config.AWS_REGION,
+        apiVersion: '2012-08-10'
+    });
+
+    function respond(success, data) {
+        const response = {
+            statusCode: success ? 200 : 500,
+            "headers": {
+                "Access-Control-Allow-Origin": "*"
+            },
+            body: JSON.stringify({
+                message: success ? "Successfully fetched data." : "Fetched to fetch data :(",
+                images: data,
+            }, null, 2)
+        };
+        callback(null, response);
+    }
+
+    dynamoDB.query({
+        TableName: config.AWS_DYNAMODB_TABLE,
+        ProjectionExpression: `${columns.updateTime.name},${columns.srcSet.name},${columns.original.name},${columns.description.name}`,
+        KeyConditionExpression: `#category = :category`,
+        ExpressionAttributeNames: {
+            "#category": columns.category.name
+        },
+        ExpressionAttributeValues: {
+            ":category": {
+                [columns.category.type]: category
+            }
+        },
+        ScanIndexForward: false
+    }, (err, data) => {
+        if (err) {
+            console.log('Failed to query DynamoDB.', err);
+            respond(false);
+        } else {
+            const unmarshalled = data.Items.map(AWS.DynamoDB.Converter.unmarshall);
+            console.log('Fetched data from DynamoDB.', unmarshalled);
+            respond(true, unmarshalled);
+        }
+    });
+};
