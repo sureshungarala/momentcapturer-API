@@ -38,6 +38,9 @@ module.exports.csr = (event, context, callback) => {
                 },
                 [config.TABLET_MAX_WIDTH]: {
                     [columns.srcSet.subType]: ""
+                },
+                [config.LAPTOP_MAX_WIDTH]: {
+                    [columns.srcSet.subType]: ""
                 }
             }
         },
@@ -58,7 +61,7 @@ module.exports.csr = (event, context, callback) => {
     let s3 = new AWS.S3({
         accessKeyId: config.AWS_ACCESS_KEY_ID,
         secretAccessKey: config.AWS_SECRET_ACCESS_KEY,
-        region: config.AWS_REGION,
+        region: config.AWS_S3_REGION,
         apiVersion: '2006-03-01'
     }),
         dynamoDB = new AWS.DynamoDB({
@@ -79,10 +82,10 @@ module.exports.csr = (event, context, callback) => {
             chromaSubsampling: '4:4:4',
             optimiseScans: true
         }).resize({   //aspect ratio 4:3
-            width: device === config.HANDHELD ? 500 : device === config.TABLET ? 900 : resolution[0],
-            height: device === config.HANDHELD ? 375 : device === config.TABLET ? 675 : resolution[1],
+            width: device === config.HANDHELD ? 500 : device === config.TABLET ? 700 : device === config.LAPTOP ? 900 : resolution[0],
+            height: device === config.HANDHELD ? 375 : device === config.TABLET ? 525 : device === config.LAPTOP ? 675 : resolution[1],
             fit: "contain",
-            background: { r: 255, g: 255, b: 255, alpha: 0 }    //alpha is transparency '0' is 100% transp...so, rgb doesn't matter when alpha is 0
+            background: "rgb(255, 255, 255, 1)"    //alpha is transparency '0' is 100% transp...so, rgb doesn't matter when alpha is 0
         }).toBuffer((err, buffer, info) => {
             const Key = `${fileName}-${device}.jpeg`;
             if (!err) {
@@ -96,8 +99,8 @@ module.exports.csr = (event, context, callback) => {
                         console.log(`Failed to upload ${Key} to s3 with error `, error);
                         defer.reject(config.FAILURE);
                     } else {
-                        if (device === config.HANDHELD || device === config.TABLET) {
-                            Item[columns.srcSet.name][columns.srcSet.type][device === config.HANDHELD ? config.HANDHELD_MAX_WIDTH : config.TABLET_MAX_WIDTH][columns.srcSet.subType] = data.Location;
+                        if (device === config.HANDHELD || device === config.TABLET || device === config.LAPTOP) {
+                            Item[columns.srcSet.name][columns.srcSet.type][device === config.HANDHELD ? config.HANDHELD_MAX_WIDTH : device === config.TABLET ? config.TABLET_MAX_WIDTH : config.LAPTOP_MAX_WIDTH][columns.srcSet.subType] = data.Location;
                         } else if (device === config.ORIGINAL) {
                             Item[columns.original.name][columns.original.type] = data.Location;
                         }
@@ -153,8 +156,11 @@ module.exports.csr = (event, context, callback) => {
             if (handheldResp === config.SUCCESS) {
                 const tabletResp = await compressAndStore(config.TABLET);
                 if (tabletResp === config.SUCCESS) {
-                    const originalResp = await compressAndStore(config.ORIGINAL);
-                    originalResp === config.SUCCESS && await record();
+                    const laptopResp = await compressAndStore(config.LAPTOP);
+                    if (laptopResp === config.SUCCESS) {
+                        const originalResp = await compressAndStore(config.ORIGINAL);
+                        originalResp === config.SUCCESS && await record();
+                    }
                 }
             }
             respond(true);
