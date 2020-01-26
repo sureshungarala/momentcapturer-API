@@ -12,6 +12,10 @@
         "type": "M",
         "subType": "S"
     },
+    "biotc": {
+        "name": "biotc",
+        "type": "BOOL"
+    },
     "original": {
         "name": "original",
         "type": "S"

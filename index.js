@@ -17,13 +17,16 @@ module.exports.csr = (event, context, callback) => {
     const params = JSON.parse(event.body),
         fileNameWithExt = params.imageName,
         resolution = params.resolution.split(':').map(Number),
+        isBIOTC = params.biotc,   //best image of the category
+        isPortrait = params.portrait,
+        isPanaroma = params.panaroma,
         category = params.category,
         description = params.description;
     const fileName = fileNameWithExt.substr(0, fileNameWithExt.lastIndexOf('.')),
         decoded = Buffer.from(params.image.replace(/^data:image\/\w+;base64,/, ""), 'base64');
 
     let executionCount = 0;
-
+    console.log('isBIOTC ', isBIOTC, ' typeof isPortrait is ', typeof isBIOTC);
     const Item = {
         [columns.category.name]: {
             [columns.category.type]: category
@@ -43,6 +46,9 @@ module.exports.csr = (event, context, callback) => {
                     [columns.srcSet.subType]: ""
                 }
             }
+        },
+        [columns.biotc.name]: {
+            [columns.biotc.type]: isBIOTC
         },
         [columns.original.name]: {
             [columns.original.type]: ""
@@ -81,13 +87,19 @@ module.exports.csr = (event, context, callback) => {
             progressive: true,
             chromaSubsampling: '4:4:4',
             optimiseScans: true
-        }).resize({   //aspect ratio 4:3
-            width: device === config.HANDHELD ? 500 : device === config.TABLET ? 700 : device === config.LAPTOP ? 900 : resolution[0],
-            height: device === config.HANDHELD ? 375 : device === config.TABLET ? 525 : device === config.LAPTOP ? 675 : resolution[1],
+        }).resize({   //aspect ratio 3:2
+            width: device === config.HANDHELD ? isBIOTC ? config.ITOC_HANDHELD_WIDTH : (!isPortrait ? config.LANDSCAPE_HANDHELD_WIDTH : config.LANDSCAPE_HANDHELD_HEIGHT) :
+                device === config.TABLET ? isBIOTC ? config.ITOC_TABLET_WIDTH : (!isPortrait ? config.LANDSCAPE_TABLET_WIDTH : config.LANDSCAPE_TABLET_HEIGHT) :
+                    device === config.LAPTOP ? isBIOTC ? config.ITOC_LAPTOP_WIDTH : (!isPortrait ? config.LANDSCAPE_LAPTOP_WIDTH : config.LANDSCAPE_LAPTOP_HEIGHT) :
+                        resolution[0],
+            height: device === config.HANDHELD ? isBIOTC ? config.ITOC_HANDHELD_HEIGHT : (!isPortrait ? config.LANDSCAPE_HANDHELD_HEIGHT : config.LANDSCAPE_HANDHELD_WIDTH) :
+                device === config.TABLET ? isBIOTC ? config.ITOC_TABLET_HEIGHT : (!isPortrait ? config.LANDSCAPE_TABLET_HEIGHT : config.LANDSCAPE_TABLET_WIDTH) :
+                    device === config.LAPTOP ? isBIOTC ? config.ITOC_LAPTOP_HEIGHT : (!isPortrait ? config.LANDSCAPE_LAPTOP_HEIGHT : config.LANDSCAPE_LAPTOP_WIDTH) :
+                        resolution[1],
             fit: "contain",
             background: "rgb(255, 255, 255, 1)"    //alpha is transparency '0' is 100% transp...so, rgb doesn't matter when alpha is 0
         }).toBuffer((err, buffer, info) => {
-            const Key = `${fileName}-${device}.jpeg`;
+            const Key = `${fileName}-${isBIOTC ? columns.biotc.name + '-' + device : device}.jpeg`;
             if (!err) {
                 console.log(`Successfully compressed for ${device} with info `, info);
                 s3.upload({
@@ -136,6 +148,114 @@ module.exports.csr = (event, context, callback) => {
         return defer.promise;
     }
 
+    function checkIfBiotcExists() {
+        let defer = Q.defer();
+        const getParams = {
+            TableName: config.AWS_DYNAMODB_TABLE,
+            ProjectionExpression: `${columns.updateTime.name},${columns.srcSet.name},${columns.original.name}`,
+            KeyConditionExpression: `#category = :category`,
+            FilterExpression: `#biotc = :biotc`,
+            ExpressionAttributeNames: {
+                "#category": columns.category.name,
+                "#biotc": columns.biotc.name
+            },
+            ExpressionAttributeValues: {
+                ":category": {
+                    [columns.category.type]: category
+                },
+                ":biotc": {
+                    [columns.biotc.type]: true
+                }
+            }
+        };
+        dynamoDB.query(getParams, (err, data) => {
+            if (err) {
+                console.log('Failed to getItem from DynamoDB with error', err);
+                defer.reject(config.FAILURE);
+            } else {
+                console.log('BIOTC Item from dynamo ', data);
+                const unmarshalled = data.Items.map(AWS.DynamoDB.Converter.unmarshall)[0];  // BIOTC image 
+                console.log('unmarshalled ', unmarshalled);
+                let item = {}, objects = [];
+                if (unmarshalled && Object.keys(unmarshalled).length) {
+                    for (let key in unmarshalled[columns.srcSet.name]) {
+                        objects.push({
+                            Key: unmarshalled[columns.srcSet.name][key]
+                        })
+                    }
+                    objects.push({
+                        Key: unmarshalled[columns.original.name]
+                    });
+                    item = {
+                        objects,
+                        [columns.updateTime.name]: unmarshalled[columns.updateTime.name]
+                    }
+                }
+                console.log('Fetched BIOTC from DynamoDB.', item);
+                defer.resolve(item);
+            }
+        });
+        return defer.promise;
+    }
+
+    function updateExistingBiotcImage(lastUpdatedTime) {
+        let defer = Q.defer();
+        const updateParams = {
+            TableName: config.AWS_DYNAMODB_TABLE,
+            Key: {
+                [columns.category.name]: {
+                    [columns.category.type]: category
+                },
+                [columns.updateTime.name]: {
+                    [columns.updateTime.type]: '' + lastUpdatedTime
+                }
+            },
+            UpdateExpression: `SET #biotc = :biotc, #removed = :removed`,
+            ExpressionAttributeNames: {
+                "#biotc": columns.biotc.name,
+                "#removed": columns.removed.name
+            },
+            ExpressionAttributeValues: {
+                ":biotc": {
+                    [columns.biotc.type]: false
+                },
+                ":removed": {
+                    [columns.removed.type]: true
+                }
+            }
+        };
+        dynamoDB.updateItem(updateParams, (err, data) => {
+            if (err) {
+                console.log('Failed to update existing biotc to false with error ', err);
+                defer.reject(config.FAILURE);
+            } else {
+                console.log(`Successully 'soft deleted' existing biotc `, data);
+                defer.resolve(config.SUCCESS);
+            }
+        });
+        return defer.promise;
+    }
+
+    function deleteBiotcImagesFromS3(Objects) {
+        let defer = Q.defer();
+        s3.deleteObjects({
+            Bucket: config.AWS_S3_BUCKET_NAME,
+            Delete: {
+                Objects,
+                Quiet: true
+            }
+        }, (err, data) => {
+            if (err) {
+                console.log('Failed to delete imgaes from S3 with error ', err);
+                defer.reject(config.FAILURE);
+            } else {
+                console.log('Successfully deleted images ', Objects, ' from S3 with metadata ', data);
+                defer.resolve(config.SUCCESS);
+            }
+        });
+        return defer.promise;
+    }
+
     function respond(success) {
         const response = {
             statusCode: success ? 200 : 500,
@@ -152,17 +272,18 @@ module.exports.csr = (event, context, callback) => {
     async function executeCSR() {
         executionCount++;
         try {
-            const handheldResp = await compressAndStore(config.HANDHELD);
-            if (handheldResp === config.SUCCESS) {
-                const tabletResp = await compressAndStore(config.TABLET);
-                if (tabletResp === config.SUCCESS) {
-                    const laptopResp = await compressAndStore(config.LAPTOP);
-                    if (laptopResp === config.SUCCESS) {
-                        const originalResp = await compressAndStore(config.ORIGINAL);
-                        originalResp === config.SUCCESS && await record();
-                    }
+            await compressAndStore(config.HANDHELD);
+            await compressAndStore(config.TABLET);
+            await compressAndStore(config.LAPTOP);
+            await compressAndStore(config.ORIGINAL);
+            if (isBIOTC) {
+                const checkItemResp = await checkIfBiotcExists();
+                if (checkItemResp[columns.updateTime.name]) {
+                    await updateExistingBiotcImage(checkItemResp[columns.updateTime.name]);
+                    await deleteBiotcImagesFromS3(checkItemResp['objects']);
                 }
             }
+            await record();
             respond(true);
         } catch (err) {
             console.log('CSR failed with error ', err, executionCount);
