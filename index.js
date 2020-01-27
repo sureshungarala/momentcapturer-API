@@ -19,7 +19,7 @@ module.exports.csr = (event, context, callback) => {
         resolution = params.resolution.split(':').map(Number),
         isBIOTC = params.biotc,   //best image of the category
         isPortrait = params.portrait,
-        isPanaroma = params.panaroma,
+        isPanorama = params.panorama,
         category = params.category,
         description = params.description;
     const fileName = fileNameWithExt.substr(0, fileNameWithExt.lastIndexOf('.')),
@@ -49,6 +49,9 @@ module.exports.csr = (event, context, callback) => {
         },
         [columns.biotc.name]: {
             [columns.biotc.type]: isBIOTC
+        },
+        [columns.panorama.name]: {
+            [columns.panorama.type]: isPanorama
         },
         [columns.original.name]: {
             [columns.original.type]: ""
@@ -87,15 +90,9 @@ module.exports.csr = (event, context, callback) => {
             progressive: true,
             chromaSubsampling: '4:4:4',
             optimiseScans: true
-        }).resize({   //aspect ratio 3:2
-            width: device === config.HANDHELD ? isBIOTC ? config.ITOC_HANDHELD_WIDTH : (!isPortrait ? config.LANDSCAPE_HANDHELD_WIDTH : config.LANDSCAPE_HANDHELD_HEIGHT) :
-                device === config.TABLET ? isBIOTC ? config.ITOC_TABLET_WIDTH : (!isPortrait ? config.LANDSCAPE_TABLET_WIDTH : config.LANDSCAPE_TABLET_HEIGHT) :
-                    device === config.LAPTOP ? isBIOTC ? config.ITOC_LAPTOP_WIDTH : (!isPortrait ? config.LANDSCAPE_LAPTOP_WIDTH : config.LANDSCAPE_LAPTOP_HEIGHT) :
-                        resolution[0],
-            height: device === config.HANDHELD ? isBIOTC ? config.ITOC_HANDHELD_HEIGHT : (!isPortrait ? config.LANDSCAPE_HANDHELD_HEIGHT : config.LANDSCAPE_HANDHELD_WIDTH) :
-                device === config.TABLET ? isBIOTC ? config.ITOC_TABLET_HEIGHT : (!isPortrait ? config.LANDSCAPE_TABLET_HEIGHT : config.LANDSCAPE_TABLET_WIDTH) :
-                    device === config.LAPTOP ? isBIOTC ? config.ITOC_LAPTOP_HEIGHT : (!isPortrait ? config.LANDSCAPE_LAPTOP_HEIGHT : config.LANDSCAPE_LAPTOP_WIDTH) :
-                        resolution[1],
+        }).resize({   //default aspect ratio 3:2
+            width: getResolution(device, config.WIDTH),
+            height: getResolution(device, config.HEIGHT),
             fit: "contain",
             background: "rgb(255, 255, 255, 1)"    //alpha is transparency '0' is 100% transp...so, rgb doesn't matter when alpha is 0
         }).toBuffer((err, buffer, info) => {
@@ -254,6 +251,74 @@ module.exports.csr = (event, context, callback) => {
             }
         });
         return defer.promise;
+    }
+
+    function getResolution(device, axis) {
+        if (axis === config.WIDTH) {
+            if (isPortrait) {
+                if (device === config.HANDHELD) {
+                    return config.LANDSCAPE_HANDHELD_HEIGHT;
+                } else if (device === config.TABLET) {
+                    return config.LANDSCAPE_TABLET_HEIGHT;
+                } else if (device === config.LAPTOP) {
+                    return config.LANDSCAPE_LAPTOP_HEIGHT;
+                } else {
+                    return resolution[0];
+                }
+            } else if (isBIOTC || isPanorama) {
+                if (device === config.HANDHELD) {
+                    return config.BITOC_HANDHELD_WIDTH;
+                } else if (device === config.TABLET) {
+                    return config.BITOC_TABLET_WIDTH;
+                } else if (device === config.LAPTOP) {
+                    return config.BITOC_LAPTOP_WIDTH;
+                } else {
+                    return resolution[0];
+                }
+            } else {
+                if (device === config.HANDHELD) {
+                    return config.LANDSCAPE_HANDHELD_WIDTH;
+                } else if (device === config.TABLET) {
+                    return config.LANDSCAPE_TABLET_WIDTH;
+                } else if (device === config.LAPTOP) {
+                    return config.LANDSCAPE_LAPTOP_WIDTH;
+                } else {
+                    return resolution[0];
+                }
+            }
+        } else {
+            if (isPortrait) {
+                if (device === config.HANDHELD) {
+                    return config.LANDSCAPE_HANDHELD_WIDTH;
+                } else if (device === config.TABLET) {
+                    return config.LANDSCAPE_TABLET_WIDTH;
+                } else if (device === config.LAPTOP) {
+                    return config.LANDSCAPE_LAPTOP_WIDTH;
+                } else {
+                    return resolution[1];
+                }
+            } else if (isBIOTC || isPanorama) {
+                if (device === config.HANDHELD) {
+                    return Math.round(Number(config.BITOC_HANDHELD_HEIGHT) * (resolution[1] / resolution[0]));
+                } else if (device === config.TABLET) {
+                    return Math.round(Number(config.BITOC_TABLET_HEIGHT) * (resolution[1] / resolution[0]));
+                } else if (device === config.LAPTOP) {
+                    return Math.round(Number(config.BITOC_LAPTOP_HEIGHT) * (resolution[1] / resolution[0]));
+                } else {
+                    return resolution[1];
+                }
+            } else {
+                if (device === config.HANDHELD) {
+                    return config.LANDSCAPE_HANDHELD_HEIGHT;
+                } else if (device === config.TABLET) {
+                    return config.LANDSCAPE_TABLET_HEIGHT;
+                } else if (device === config.LAPTOP) {
+                    return config.LANDSCAPE_LAPTOP_HEIGHT;
+                } else {
+                    return resolution[1];
+                }
+            }
+        }
     }
 
     function respond(success) {

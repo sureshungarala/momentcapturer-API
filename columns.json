@@ -16,6 +16,10 @@
         "name": "biotc",
         "type": "BOOL"
     },
+    "panorama": {
+        "name": "panorama",
+        "type": "BOOL"
+    },
     "original": {
         "name": "original",
         "type": "S"
