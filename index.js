@@ -59,6 +59,9 @@ module.exports.csr = (event, context, callback) => {
         [columns.description.name]: {
             [columns.description.type]: description
         },
+        [columns.resolution.name]: {
+            [columns.resolution.type]: params.resolution
+        },
         [columns.updateTime.name]: {
             [columns.updateTime.type]: ""
         },
@@ -299,11 +302,11 @@ module.exports.csr = (event, context, callback) => {
                 }
             } else if (isBIOTC || isPanorama) {
                 if (device === config.HANDHELD) {
-                    return Math.round(Number(config.BITOC_HANDHELD_HEIGHT) * (resolution[1] / resolution[0]));
+                    return Math.round(Number(config.BITOC_HANDHELD_WIDTH) * (resolution[1] / resolution[0]));
                 } else if (device === config.TABLET) {
-                    return Math.round(Number(config.BITOC_TABLET_HEIGHT) * (resolution[1] / resolution[0]));
+                    return Math.round(Number(config.BITOC_TABLET_WIDTH) * (resolution[1] / resolution[0]));
                 } else if (device === config.LAPTOP) {
-                    return Math.round(Number(config.BITOC_LAPTOP_HEIGHT) * (resolution[1] / resolution[0]));
+                    return Math.round(Number(config.BITOC_LAPTOP_WIDTH) * (resolution[1] / resolution[0]));
                 } else {
                     return resolution[1];
                 }

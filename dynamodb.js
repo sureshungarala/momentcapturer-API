@@ -126,7 +126,7 @@ module.exports.getData = (event, context, callback) => {
 
     dynamoDB.query({
         TableName: config.AWS_DYNAMODB_TABLE,
-        ProjectionExpression: `${columns.updateTime.name},${columns.srcSet.name},${columns.original.name},${columns.biotc.name},${columns.panorama.name},${columns.description.name}`,
+        ProjectionExpression: `${columns.updateTime.name},${columns.srcSet.name},${columns.original.name},${columns.biotc.name},${columns.panorama.name},${columns.description.name},${columns.resolution.name}`,
         KeyConditionExpression: `#category = :category`,
         FilterExpression: `#removed = :removed`,
         ExpressionAttributeNames: {
