@@ -24,26 +24,6 @@ module.exports.createTable = (event, context, callback) => {
                 AttributeName: columns.updateTime.name,
                 AttributeType: "N"
             }
-            // {
-            //     AttributeName: "srcSet",
-            //     AttributeType: "B"
-            // },
-            // {
-            //     AttributeName: "original",
-            //     AttributeType: "S"
-            // },
-            // {
-            //     AttributeName: "description",
-            //     AttributeType: "S"
-            // },
-            // {
-            //     AttributeName: "updateTime",
-            //     AttributeType: "N"
-            // },
-            // {
-            //     AttributeName: "removed",
-            //     AttributeType: "N"
-            // }
         ],
         KeySchema: [
             {
@@ -126,7 +106,7 @@ module.exports.getData = (event, context, callback) => {
 
     dynamoDB.query({
         TableName: config.AWS_DYNAMODB_TABLE,
-        ProjectionExpression: `${columns.updateTime.name},${columns.srcSet.name},${columns.original.name},${columns.biotc.name},${columns.panorama.name},${columns.description.name},${columns.resolution.name}`,
+        ProjectionExpression: `${columns.updateTime.name},${columns.srcSet.name},${columns.original.name},${columns.biotc.name},${columns.panorama.name},${columns.portrait.name},${columns.description.name},${columns.resolution.name}`,
         KeyConditionExpression: `#category = :category`,
         FilterExpression: `#removed = :removed`,
         ExpressionAttributeNames: {

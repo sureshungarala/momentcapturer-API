@@ -20,6 +20,10 @@
         "name": "panorama",
         "type": "BOOL"
     },
+    "portrait": {
+        "name": "portrait",
+        "type": "BOOL"
+    },
     "original": {
         "name": "original",
         "type": "S"

@@ -53,6 +53,9 @@ module.exports.csr = (event, context, callback) => {
         [columns.panorama.name]: {
             [columns.panorama.type]: isPanorama
         },
+        [columns.portrait.name]: {
+            [columns.portrait.type]: isPortrait
+        },
         [columns.original.name]: {
             [columns.original.type]: ""
         },
