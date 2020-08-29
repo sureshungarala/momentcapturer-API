@@ -1,8 +1,8 @@
 "use strict";
 
 const AWS = require("aws-sdk");
-const config = require("./config.json");
-const columns = require("./columns.json");
+const config = require("./config/config.json");
+const columns = require("./config/columns.json");
 
 module.exports.createTable = (event, context, callback) => {
   let dynamoDB = new AWS.DynamoDB({
