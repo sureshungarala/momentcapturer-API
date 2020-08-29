@@ -1,11 +1,11 @@
-'use strict';
+"use strict";
 
-module.exports.hello = async event => {
+module.exports.hello = async (event) => {
   return {
     statusCode: 200,
     body: JSON.stringify(
       {
-        message: 'Go Serverless v1.0! Your function executed successfully!',
+        message: "Go Serverless v1.0! Your function executed successfully!",
         input: event,
       },
       null,
@@ -16,16 +16,16 @@ module.exports.hello = async event => {
   // return { message: 'Go Serverless v1.0! Your function executed successfully!', event };
 };
 
-module.exports.goodbye = async event => {
+module.exports.goodbye = async (event) => {
   return {
     statusCode: 200,
     body: JSON.stringify(
       {
-        message: 'Good Bye! from Serverless',
-        input: event
+        message: "Good Bye! from Serverless",
+        input: event,
       },
       null,
       2
-    )
+    ),
   };
 };
