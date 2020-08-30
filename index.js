@@ -57,11 +57,15 @@ module.exports.csr = (event, context, callback) => {
       await apis.compressAndStore(cAndsParams, config.LAPTOP);
       await apis.compressAndStore(cAndsParams, config.ORIGINAL);
       if (params.biotc) {
-        const checkItemResp = await apis.checkIfBiotcExists(dynamoDB);
+        const checkItemResp = await apis.checkIfBiotcExists(
+          dynamoDB,
+          params.category
+        );
         if (checkItemResp[columns.updateTime.name]) {
           await apis.updateExistingBiotcImage(
             dynamoDB,
-            checkItemResp[columns.updateTime.name]
+            checkItemResp[columns.updateTime.name],
+            params.category
           );
           await apis.deleteBiotcImagesFromS3(s3, checkItemResp["objects"]);
         }

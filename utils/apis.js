@@ -7,8 +7,9 @@ const helpers = require("./helpers");
 /**
  *
  * @param {Object DynamoDB_Constructor} dynamoDB
+ * @param {String image_category} category
  */
-const checkIfBiotcExists = async (dynamoDB) => {
+const checkIfBiotcExists = async (dynamoDB, category) => {
   let defer = Q.defer();
   const getParams = {
     TableName: config.AWS_DYNAMODB_TABLE,
@@ -63,8 +64,13 @@ const checkIfBiotcExists = async (dynamoDB) => {
  *
  * @param {Object DynamoDB_Constructor} dynamoDB
  * @param {Number} lastUpdatedTime
+ * @param {String} category
  */
-const updateExistingBiotcImage = async (dynamoDB, lastUpdatedTime) => {
+const updateExistingBiotcImage = async (
+  dynamoDB,
+  lastUpdatedTime,
+  category
+) => {
   let defer = Q.defer();
   const updateParams = {
     TableName: config.AWS_DYNAMODB_TABLE,
