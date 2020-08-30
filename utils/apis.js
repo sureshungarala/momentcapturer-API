@@ -148,11 +148,11 @@ const deleteBiotcImagesFromS3 = async (s3, Objects) => {
  */
 const record = (dynamoDB, dynamoRowItem) => {
   let defer = Q.defer();
-  Item[columns.uploadTime.name][columns.uploadTime.type] =
+  dynamoRowItem[columns.uploadTime.name][columns.uploadTime.type] =
     "" + new Date().getTime();
-  Item[columns.updateTime.name][columns.updateTime.type] =
+  dynamoRowItem[columns.updateTime.name][columns.updateTime.type] =
     "" + new Date().getTime();
-  console.log("Item ", Item);
+  console.log("Item ", dynamoRowItem);
   dynamoDB.putItem(
     {
       TableName: config.AWS_DYNAMODB_TABLE,
