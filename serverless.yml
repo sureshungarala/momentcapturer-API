@@ -35,18 +35,6 @@ custom:
     # endpointType: "regional"
 
 functions:
-  hello:
-    handler: handler.hello
-    events:
-      - http:
-          path: hello
-          method: get
-  goodbye:
-    handler: handler.goodbye
-    events:
-      - http:
-          path: goodbye
-          method: get
   csr:
     handler: index.csr
     memorySize: 1536
@@ -74,18 +62,3 @@ functions:
           path: getData
           method: get
           cors: true
-#    Define function environment variables here
-#    environment:
-#      variable2: value2
-
-# you can add CloudFormation resource templates here
-#resources:
-#  Resources:
-#    NewResource:
-#      Type: AWS::S3::Bucket
-#      Properties:
-#        BucketName: my-new-bucket
-#  Outputs:
-#     NewOutput:
-#       Description: "Description for the output"
-#       Value: "Some output value"
