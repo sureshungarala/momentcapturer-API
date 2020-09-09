@@ -70,23 +70,20 @@ module.exports.createTable = (event, context, callback) => {
     callback(null, response);
   }
 
-  dynamoDB.createTable(tableParams, (err, data) => {
-    if (err) {
-      console.log("Unable to create table. Error: ", err);
+  dynamoDB.createTable(tableParams, (error, data) => {
+    if (error) {
+      console.error("Failed to create table with error: ", error);
       respond(false);
     } else {
-      console.log("Created table. table metadata: ");
+      console.info("Table created with metadata: ", data);
       respond(true);
     }
   });
 };
 
 module.exports.getData = (event, context, callback) => {
-  console.log("event ", event);
   const params = event.queryStringParameters,
     category = params.category;
-
-  console.log("params ", params);
 
   let dynamoDB = new AWS.DynamoDB({
     accessKeyId: config.AWS_ACCESS_KEY_ID,
@@ -135,13 +132,12 @@ module.exports.getData = (event, context, callback) => {
       },
       ScanIndexForward: false,
     },
-    (err, data) => {
-      if (err) {
-        console.log("Failed to query DynamoDB.", err);
+    (error, data) => {
+      if (error) {
+        console.error("Failed to query DynamoDB with error: ", error);
         respond(false);
       } else {
         const unmarshalled = data.Items.map(AWS.DynamoDB.Converter.unmarshall);
-        console.log("Fetched data from DynamoDB.", unmarshalled);
         respond(true, unmarshalled);
       }
     }

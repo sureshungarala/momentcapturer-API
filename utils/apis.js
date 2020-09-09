@@ -29,14 +29,13 @@ const checkIfBiotcExists = async (dynamoDB, category) => {
       },
     },
   };
+
   dynamoDB.query(getParams, (err, data) => {
     if (err) {
-      console.log("Failed to getItem from DynamoDB with error", err);
+      console.error("Failed to getItem from DynamoDB with error: ", err);
       defer.reject(config.FAILURE);
     } else {
-      console.log("BIOTC Item from dynamo ", data);
       const unmarshalled = data.Items.map(AWS.DynamoDB.Converter.unmarshall)[0]; // BIOTC image
-      console.log("unmarshalled ", unmarshalled);
       let item = {},
         objects = [];
       if (unmarshalled && Object.keys(unmarshalled).length) {
@@ -53,7 +52,7 @@ const checkIfBiotcExists = async (dynamoDB, category) => {
           [columns.updateTime.name]: unmarshalled[columns.updateTime.name],
         };
       }
-      console.log("Fetched BIOTC from DynamoDB.", item);
+      console.info("Fetched BIOTC from DynamoDB.", item);
       defer.resolve(item);
     }
   });
@@ -96,12 +95,15 @@ const updateExistingBiotcImage = async (
       },
     },
   };
-  dynamoDB.updateItem(updateParams, (err, data) => {
-    if (err) {
-      console.log("Failed to update existing biotc to false with error ", err);
+  dynamoDB.updateItem(updateParams, (error, data) => {
+    if (error) {
+      console.error(
+        "Failed to update existing biotc to false with error ",
+        error
+      );
       defer.reject(config.FAILURE);
     } else {
-      console.log(`Successully 'soft deleted' existing biotc `, data);
+      console.info(`Successully 'soft deleted' existing biotc `, data);
       defer.resolve(config.SUCCESS);
     }
   });
@@ -123,15 +125,15 @@ const deleteBiotcImagesFromS3 = async (s3, Objects) => {
         Quiet: true,
       },
     },
-    (err, data) => {
-      if (err) {
-        console.log("Failed to delete imgaes from S3 with error ", err);
+    (error, data) => {
+      if (error) {
+        console.error("Failed to delete imgaes from S3 with error ", error);
         defer.reject(config.FAILURE);
       } else {
-        console.log(
-          "Successfully deleted images ",
+        console.info(
+          "Successfully deleted images: ",
           Objects,
-          " from S3 with metadata ",
+          " :from S3 with metadata: ",
           data
         );
         defer.resolve(config.SUCCESS);
@@ -152,18 +154,18 @@ const record = (dynamoDB, dynamoRowItem) => {
     "" + new Date().getTime();
   dynamoRowItem[columns.updateTime.name][columns.updateTime.type] =
     "" + new Date().getTime();
-  console.log("Item ", dynamoRowItem);
+
   dynamoDB.putItem(
     {
       TableName: config.AWS_DYNAMODB_TABLE,
       Item: dynamoRowItem,
     },
-    (err, data) => {
-      if (err) {
-        console.log(`Failed to record item to DynamoDB with error `, err);
+    (error, data) => {
+      if (error) {
+        console.error(`Failed to record item to DynamoDB with error `, error);
         defer.reject(config.FAILURE);
       } else {
-        console.log(
+        console.info(
           `Successfully recorded item into DynamoDB with metadata `,
           data
         );
@@ -200,7 +202,7 @@ const compressAndStore = (
         params.biotc ? columns.biotc.name + "-" + device : device
       }.jpeg`;
       if (!err) {
-        console.log(`Successfully compressed for ${device} with info `, info);
+        console.info(`Successfully compressed for ${device} with info `, info);
         s3.upload(
           {
             Key,
@@ -209,7 +211,10 @@ const compressAndStore = (
           },
           (error, data) => {
             if (error) {
-              console.log(`Failed to upload ${Key} to s3 with error `, error);
+              console.error(
+                `Failed to upload ${Key} to s3 with error: `,
+                error
+              );
               defer.reject(config.FAILURE);
             } else {
               if (
@@ -228,7 +233,7 @@ const compressAndStore = (
                 dynamoRowItem[columns.original.name][columns.original.type] =
                   data.Location;
               }
-              console.log(
+              console.info(
                 `Successfully uploaded ${Key} to s3 with metadata `,
                 data
               );
@@ -237,7 +242,7 @@ const compressAndStore = (
           }
         );
       } else {
-        console.log(`Failed to compress for ${device} with error `, err);
+        console.error(`Failed to compress for ${device} with error `, err);
         defer.reject(config.FAILURE);
       }
     });

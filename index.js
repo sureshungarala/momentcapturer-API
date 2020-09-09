@@ -36,8 +36,6 @@ module.exports.csr = (event, context, callback) => {
     "base64"
   );
 
-  //console.log(params);
-
   const dynamoRowItem = helpers.constructInitDynamoRowItem(params);
 
   let executionCount = 0; // failure threshold -> execution count
@@ -72,15 +70,20 @@ module.exports.csr = (event, context, callback) => {
       }
       await apis.record(dynamoDB, dynamoRowItem);
       helpers.respond(true, callback);
-    } catch (err) {
-      console.log("CSR failed with error ", err, executionCount);
+    } catch (error) {
+      console.error(
+        "CSR failed with error: ",
+        error,
+        " :ExecutionCount: ",
+        executionCount
+      );
       if (executionCount < Math.round(config.MAX_EXECUTION_COUNT)) {
         executeCSR();
       } else {
         helpers.respond(false, callback);
       }
     } finally {
-      console.log(`Executed CSR.`);
+      console.info(`Finished running CSR.`);
     }
   }
 
