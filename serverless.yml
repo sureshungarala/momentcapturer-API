@@ -26,6 +26,7 @@ plugins:
   - serverless-domain-manager
 
 custom:
+  cognitoConfig: ${file(./config/config.json)}
   customDomain:
     domainName: api.momentcapturer.com
     certificateName: "api.momentcapturer.com"
@@ -55,6 +56,11 @@ functions:
           path: csr
           method: post
           cors: true
+          authorizer:
+            name: CognitoAuthorizer
+            arn: arn:aws:cognito-idp:${self:custom.cognitoConfig.COGNITO_REGION}:${self:custom.cognitoConfig.COGNITO_ACCOUNT_ID}:userpool/${self:custom.cognitoConfig.COGNITO_USERPOOL_ID}
+            identitySource: method.request.header.Authorization
+            type: COGNITO_USER_POOLS
   createTable:
     handler: dynamodb.createTable
     events:
