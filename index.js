@@ -12,6 +12,8 @@ const helpers = require("./utils/helpers");
  */
 
 module.exports.csr = (event, context, callback) => {
+  const startTime = new Date();
+  console.info("startTime ", startTime.toISOString());
   const { image, ...params } = JSON.parse(event.body);
 
   const s3 = new AWS.S3({
@@ -50,22 +52,26 @@ module.exports.csr = (event, context, callback) => {
         fileName,
         params,
       };
-      await apis.compressAndStore(cAndsParams, config.HANDHELD);
-      await apis.compressAndStore(cAndsParams, config.TABLET);
-      await apis.compressAndStore(cAndsParams, config.LAPTOP);
-      await apis.compressAndStore(cAndsParams, config.ORIGINAL);
+      await Promise.all([
+        apis.compressAndStore(cAndsParams, config.HANDHELD),
+        apis.compressAndStore(cAndsParams, config.TABLET),
+        apis.compressAndStore(cAndsParams, config.LAPTOP),
+        apis.compressAndStore(cAndsParams, config.ORIGINAL),
+      ]);
       if (params.biotc) {
         const checkItemResp = await apis.checkIfBiotcExists(
           dynamoDB,
           params.category
         );
         if (checkItemResp[columns.updateTime.name]) {
-          await apis.updateExistingBiotcImage(
-            dynamoDB,
-            checkItemResp[columns.updateTime.name],
-            params.category
-          );
-          await apis.deleteBiotcImagesFromS3(s3, checkItemResp["objects"]);
+          await Promise.all([
+            apis.softDeleteExistingBiotcImage(
+              dynamoDB,
+              checkItemResp[columns.updateTime.name],
+              params.category
+            ),
+            apis.deleteBiotcImagesFromS3(s3, checkItemResp["objects"]),
+          ]);
         }
       }
       await apis.record(dynamoDB, dynamoRowItem);
@@ -83,7 +89,13 @@ module.exports.csr = (event, context, callback) => {
         helpers.respond(false, callback);
       }
     } finally {
-      console.info(`Finished running CSR.`);
+      const endTime = new Date();
+      console.info(
+        `Finished running CSR. in 
+        ${((endTime.getTime() - startTime.getTime()) / 1000).toFixed(
+          2
+        )}secs, at ${endTime.toISOString()}`
+      );
     }
   }
 

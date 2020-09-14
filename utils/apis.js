@@ -65,7 +65,7 @@ const checkIfBiotcExists = async (dynamoDB, category) => {
  * @param {Number} lastUpdatedTime
  * @param {String} category
  */
-const updateExistingBiotcImage = async (
+const softDeleteExistingBiotcImage = async (
   dynamoDB,
   lastUpdatedTime,
   category
@@ -251,7 +251,7 @@ const compressAndStore = (
 
 module.exports = {
   checkIfBiotcExists,
-  updateExistingBiotcImage,
+  softDeleteExistingBiotcImage,
   deleteBiotcImagesFromS3,
   record,
   compressAndStore,
