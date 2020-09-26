@@ -36,7 +36,7 @@ custom:
 
 functions:
   csr:
-    handler: index.csr
+    handler: csr.process
     memorySize: 1536
     timeout: 10
     events:
@@ -50,15 +50,27 @@ functions:
             identitySource: method.request.header.Authorization
             type: COGNITO_USER_POOLS
   createTable:
-    handler: dynamodb.createTable
+    handler: dynamo.createTable
     events:
       - http:
           path: createTable
           method: get
   getData:
-    handler: dynamodb.getData
+    handler: dynamo.getData
     events:
       - http:
           path: getData
           method: get
           cors: true
+  editImageMetadata:
+    handler: editImage.process
+    events:
+      - http:
+          path: editImageMetadata
+          method: post
+          cors: true
+          authorizer:
+            name: CognitoAuthorizer
+            arn: arn:aws:cognito-idp:${self:custom.cognitoConfig.COGNITO_REGION}:${self:custom.cognitoConfig.COGNITO_ACCOUNT_ID}:userpool/${self:custom.cognitoConfig.COGNITO_USERPOOL_ID}
+            identitySource: method.request.header.Authorization
+            type: COGNITO_USER_POOLS

@@ -39,9 +39,10 @@ const checkIfBiotcExists = async (dynamoDB, category) => {
       let item = {},
         objects = [];
       if (unmarshalled && Object.keys(unmarshalled).length) {
-        for (let key in unmarshalled[columns.srcSet.name]) {
+        const srcSet = unmarshalled[columns.srcSet.name];
+        for (let key in srcSet) {
           objects.push({
-            Key: unmarshalled[columns.srcSet.name][key],
+            Key: srcSet[key],
           });
         }
         objects.push({
@@ -247,6 +248,39 @@ const compressAndStore = (
       }
     });
   return defer.promise;
+};
+
+const checkAndUpdateItemIfExists = (
+  dynamoDB,
+  oldCategory,
+  newCategory,
+  updateTime
+) => {
+  const params = {
+    TableName: config.AWS_DYNAMODB_TABLE,
+    ExpressionAttributeNames: {
+      "#category": columns.category.name,
+      "#updateTime": columns.updateTime.name,
+    },
+    ExpressionAttributeValues: {
+      ":category": {
+        [columns.category.type]: newCategory,
+      },
+      ":updateTime": {
+        [columns.updateTime.type]: "" + updateTime,
+      },
+    },
+    Key: {
+      [columns.category.name]: {
+        [columns.category.type]: oldCategory,
+      },
+      [columns.updateTime.name]: {
+        [columns.updateTime.type]: "" + new Date().getTime(),
+      },
+    },
+    ReturnValues: "ALL_NEW",
+    UpdateExpression: "SET #category = :category, #updateTime = :updateTime",
+  };
 };
 
 module.exports = {

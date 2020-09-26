@@ -11,7 +11,7 @@ const helpers = require("./utils/helpers");
  * biotc => best image of the category
  */
 
-module.exports.csr = (event, context, callback) => {
+module.exports.process = (event, context, callback) => {
   const startTime = new Date();
   console.info("startTime ", startTime.toISOString());
   const { image, ...params } = JSON.parse(event.body);
