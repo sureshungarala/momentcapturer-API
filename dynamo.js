@@ -3,6 +3,7 @@
 const AWS = require("aws-sdk");
 const config = require("./config/config.json");
 const columns = require("./config/columns.json");
+const { respond, API_IDENTIFIERS } = require("./utils/helpers");
 
 module.exports.createTable = (event, context, callback) => {
   let dynamoDB = new AWS.DynamoDB({
@@ -51,32 +52,13 @@ module.exports.createTable = (event, context, callback) => {
     ],
   };
 
-  function respond(success) {
-    const response = {
-      statusCode: success ? 200 : 500,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-      },
-      body: JSON.stringify(
-        {
-          message: success
-            ? "Created DynamoDB table :)"
-            : "Failed to create DynamoDB table :(",
-        },
-        null,
-        2
-      ),
-    };
-    callback(null, response);
-  }
-
   dynamoDB.createTable(tableParams, (error, data) => {
     if (error) {
       console.error("Failed to create table with error: ", error);
-      respond(false);
+      respond(API_IDENTIFIERS.CREATE_TABLE.name, false, callback);
     } else {
       console.info("Table created with metadata: ", data);
-      respond(true);
+      respond(API_IDENTIFIERS.CREATE_TABLE.name, true, callback);
     }
   });
 };
@@ -91,26 +73,6 @@ module.exports.getData = (event, context, callback) => {
     region: config.AWS_REGION,
     apiVersion: "2012-08-10",
   });
-
-  function respond(success, data) {
-    const response = {
-      statusCode: success ? 200 : 500,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-      },
-      body: JSON.stringify(
-        {
-          message: success
-            ? "Successfully fetched data."
-            : "Fetched to fetch data :(",
-          images: data,
-        },
-        null,
-        2
-      ),
-    };
-    callback(null, response);
-  }
 
   dynamoDB.query(
     {
@@ -135,10 +97,15 @@ module.exports.getData = (event, context, callback) => {
     (error, data) => {
       if (error) {
         console.error("Failed to query DynamoDB with error: ", error);
-        respond(false);
+        respond(API_IDENTIFIERS.FETCH_IMAGES.name, false, callback);
       } else {
         const unmarshalled = data.Items.map(AWS.DynamoDB.Converter.unmarshall);
-        respond(true, unmarshalled);
+        respond(
+          API_IDENTIFIERS.FETCH_IMAGES.name,
+          true,
+          callback,
+          unmarshalled
+        );
       }
     }
   );

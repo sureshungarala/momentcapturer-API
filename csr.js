@@ -3,8 +3,18 @@
 const AWS = require("aws-sdk");
 const config = require("./config/config.json");
 const columns = require("./config/columns.json");
-const apis = require("./utils/apis");
-const helpers = require("./utils/helpers");
+const {
+  compressAndStore,
+  checkIfBiotcExists,
+  softDeleteExistingBiotcImage,
+  deleteImagesFromS3,
+  record,
+} = require("./utils/apis");
+const {
+  constructInitDynamoRowItem,
+  respond,
+  API_IDENTIFIERS,
+} = require("./utils/helpers");
 
 /**
  * C =>compress image, S=>store in s3, R=> record in dynamoDB
@@ -38,7 +48,7 @@ module.exports.process = (event, context, callback) => {
     "base64"
   );
 
-  const dynamoRowItem = helpers.constructInitDynamoRowItem(params);
+  const dynamoRowItem = constructInitDynamoRowItem(params);
 
   let executionCount = 0; // failure threshold -> execution count
 
@@ -53,29 +63,29 @@ module.exports.process = (event, context, callback) => {
         params,
       };
       await Promise.all([
-        apis.compressAndStore(cAndsParams, config.HANDHELD),
-        apis.compressAndStore(cAndsParams, config.TABLET),
-        apis.compressAndStore(cAndsParams, config.LAPTOP),
-        apis.compressAndStore(cAndsParams, config.ORIGINAL),
+        compressAndStore(cAndsParams, config.HANDHELD),
+        compressAndStore(cAndsParams, config.TABLET),
+        compressAndStore(cAndsParams, config.LAPTOP),
+        compressAndStore(cAndsParams, config.ORIGINAL),
       ]);
       if (params.biotc) {
-        const checkItemResp = await apis.checkIfBiotcExists(
+        const checkItemResp = await checkIfBiotcExists(
           dynamoDB,
           params.category
         );
         if (checkItemResp[columns.updateTime.name]) {
           await Promise.all([
-            apis.softDeleteExistingBiotcImage(
+            softDeleteExistingBiotcImage(
               dynamoDB,
               checkItemResp[columns.updateTime.name],
               params.category
             ),
-            apis.deleteBiotcImagesFromS3(s3, checkItemResp["objects"]),
+            deleteImagesFromS3(s3, checkItemResp["objects"]),
           ]);
         }
       }
-      await apis.record(dynamoDB, dynamoRowItem);
-      helpers.respond(true, callback);
+      await record(dynamoDB, dynamoRowItem);
+      respond(API_IDENTIFIERS.CSR.name, true, callback);
     } catch (error) {
       console.error(
         "CSR failed with error: ",
@@ -86,7 +96,7 @@ module.exports.process = (event, context, callback) => {
       if (executionCount < Math.round(config.MAX_EXECUTION_COUNT)) {
         executeCSR();
       } else {
-        helpers.respond(false, callback);
+        respond(API_IDENTIFIERS.CSR.name, false, callback);
       }
     } finally {
       const endTime = new Date();

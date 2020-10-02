@@ -3,7 +3,7 @@ const Q = require("q");
 const sharp = require("sharp");
 const columns = require("../config/columns.json");
 const config = require("../config/config.json");
-const helpers = require("./helpers");
+const { getResolution } = require("./helpers");
 /**
  *
  * @param {Object DynamoDB_Constructor} dynamoDB
@@ -116,7 +116,7 @@ const softDeleteExistingBiotcImage = async (
  * @param {Object S3_constructor} s3
  * @param {Array S3_deleteObjects_param} Objects
  */
-const deleteBiotcImagesFromS3 = async (s3, Objects) => {
+const deleteImagesFromS3 = async (s3, Objects) => {
   let defer = Q.defer();
   s3.deleteObjects(
     {
@@ -193,8 +193,8 @@ const compressAndStore = (
     })
     .resize({
       //default aspect ratio 3:2
-      width: helpers.getResolution(device, config.WIDTH, params),
-      height: helpers.getResolution(device, config.HEIGHT, params),
+      width: getResolution(device, config.WIDTH, params),
+      height: getResolution(device, config.HEIGHT, params),
       fit: "contain",
       background: "rgb(255, 255, 255, 1)", //alpha is transparency '0' is 100% transp...so, rgb doesn't matter when alpha is 0
     })
@@ -250,43 +250,114 @@ const compressAndStore = (
   return defer.promise;
 };
 
-const checkAndUpdateItemIfExists = (
-  dynamoDB,
-  oldCategory,
-  newCategory,
-  updateTime
-) => {
+/**
+ * fetches dynamodb row item matching category and updateTime
+ * @param {Object DynamoDB_Constructor} DynamoDB
+ * @param {String} category
+ * @param {Number} updateTime
+ */
+const getDynamoRowItem = (dynamoDB, category, updateTime) => {
+  let defer = Q.defer();
+  const params = {
+    Key: {
+      [columns.category.name]: {
+        [columns.category.type]: category,
+      },
+      [columns.updateTime.name]: {
+        [columns.updateTime.type]: "" + updateTime,
+      },
+    },
+    TableName: config.AWS_DYNAMODB_TABLE,
+  };
+
+  dynamoDB.getItem(params, (err, data) => {
+    if (err) {
+      console.error(
+        `Failed to get matching item from DynamoDB with error `,
+        err
+      );
+      defer.reject(config.FAILURE);
+    } else {
+      console.info(`Successfully fetched item from DynamoDB `, data);
+      defer.resolve(data.Item);
+    }
+  });
+  return defer.promise;
+};
+
+const softDeleteIfExists = (dynamoDB, currentCategory, updateTime) => {
+  let defer = Q.defer();
   const params = {
     TableName: config.AWS_DYNAMODB_TABLE,
     ExpressionAttributeNames: {
-      "#category": columns.category.name,
-      "#updateTime": columns.updateTime.name,
+      "#removed": columns.removed.name,
     },
     ExpressionAttributeValues: {
-      ":category": {
-        [columns.category.type]: newCategory,
-      },
-      ":updateTime": {
-        [columns.updateTime.type]: "" + updateTime,
+      ":removed": {
+        [columns.removed.type]: true,
       },
     },
     Key: {
       [columns.category.name]: {
-        [columns.category.type]: oldCategory,
+        [columns.category.type]: currentCategory,
       },
       [columns.updateTime.name]: {
-        [columns.updateTime.type]: "" + new Date().getTime(),
+        [columns.updateTime.type]: "" + updateTime,
       },
     },
     ReturnValues: "ALL_NEW",
-    UpdateExpression: "SET #category = :category, #updateTime = :updateTime",
+    UpdateExpression: "SET #removed = :removed",
   };
+
+  dynamoDB.updateItem(params, (error, data) => {
+    if (error) {
+      console.error(`Failed to soft delete image with error `, error);
+      defer.reject(config.FAILURE);
+    } else {
+      console.info(`Successfully soft deleted image `, data);
+      defer.resolve(config.SUCCESS);
+    }
+  });
+  return defer.promise;
+};
+
+const updateImageIfExists = async (
+  dynamoDB,
+  currentCategory,
+  newCategory,
+  description,
+  updateTime
+) => {
+  let defer = Q.defer();
+  try {
+    const rowItem = await getDynamoRowItem(
+      dynamoDB,
+      currentCategory,
+      updateTime
+    );
+    rowItem[columns.category.name][columns.category.type] = newCategory;
+    rowItem[columns.description.name][columns.description.type] = description;
+
+    await Promise.all([
+      softDeleteIfExists(dynamoDB, currentCategory, updateTime),
+      record(dynamoDB, rowItem),
+    ]);
+    console.info(`Successfully updated item's metadata `);
+    defer.resolve(config.SUCCESS);
+  } catch (error) {
+    console.info(`failed to update image with error`, error);
+    defer.reject(config.FAILURE);
+  }
+  return defer.promise;
 };
 
 module.exports = {
   checkIfBiotcExists,
   softDeleteExistingBiotcImage,
-  deleteBiotcImagesFromS3,
+  deleteImagesFromS3,
   record,
+  getDynamoRowItem,
   compressAndStore,
+  softDeleteIfExists,
+  updateImageIfExists,
 };

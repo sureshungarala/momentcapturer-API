@@ -137,7 +137,35 @@ const getResolution = (
   }
 };
 
-const respond = (success, callback) => {
+const API_IDENTIFIERS = {
+  CSR: {
+    name: "CSR",
+    success: "Executed CSR :)",
+    failure: "Failed to execute CSR :(",
+  },
+  FETCH_IMAGES: {
+    name: "FETCH_IMAGES",
+    success: "Successfully fetched data.",
+    failure: "Fetched to fetch data :(",
+  },
+  CREATE_TABLE: {
+    name: "CREATE_TABLE",
+    success: "Created DynamoDB table :)",
+    failure: "Failed to create DynamoDB table :(",
+  },
+  EDIT_IMAGE: {
+    name: "EDIT_IMAGE",
+    success: "Updated image metadata successfully.",
+    failure: "Faild to update image metadata.",
+  },
+  DELETE_IMAGE: {
+    name: "DELETE_IMAGE",
+    success: "Deleted image successfully.",
+    failure: "Failed to delete image.",
+  },
+};
+
+const respond = (apiIdentifier, success, callback, images) => {
   const response = {
     statusCode: success ? 200 : 500,
     headers: {
@@ -145,7 +173,10 @@ const respond = (success, callback) => {
     },
     body: JSON.stringify(
       {
-        message: success ? "Executed CSR :)" : "Failed to execute CSR :(",
+        message: success
+          ? API_IDENTIFIERS[apiIdentifier].success
+          : API_IDENTIFIERS[apiIdentifier].failure,
+        images,
       },
       null,
       2
@@ -157,5 +188,6 @@ const respond = (success, callback) => {
 module.exports = {
   constructInitDynamoRowItem,
   getResolution,
+  API_IDENTIFIERS,
   respond,
 };
