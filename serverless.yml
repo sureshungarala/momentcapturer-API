@@ -74,3 +74,15 @@ functions:
             arn: arn:aws:cognito-idp:${self:custom.cognitoConfig.COGNITO_REGION}:${self:custom.cognitoConfig.COGNITO_ACCOUNT_ID}:userpool/${self:custom.cognitoConfig.COGNITO_USERPOOL_ID}
             identitySource: method.request.header.Authorization
             type: COGNITO_USER_POOLS
+  deleteImage:
+    handler: deleteImage.process
+    events:
+      - http:
+          path: deleteImage
+          method: post
+          cors: true
+          authorizer:
+            name: CognitoAuthorizer
+            arn: arn:aws:cognito-idp:${self:custom.cognitoConfig.COGNITO_REGION}:${self:custom.cognitoConfig.COGNITO_ACCOUNT_ID}:userpool/${self:custom.cognitoConfig.COGNITO_USERPOOL_ID}
+            identitySource: method.request.header.Authorization
+            type: COGNITO_USER_POOLS
