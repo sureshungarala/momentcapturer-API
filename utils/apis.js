@@ -3,7 +3,7 @@ const Q = require("q");
 const sharp = require("sharp");
 const columns = require("../config/columns.json");
 const config = require("../config/config.json");
-const { getResolution } = require("./helpers");
+const { getResolution, extractFileNameFromUrl } = require("./helpers");
 /**
  *
  * @param {Object DynamoDB_Constructor} dynamoDB
@@ -42,11 +42,11 @@ const checkIfBiotcExists = async (dynamoDB, category) => {
         const srcSet = unmarshalled[columns.srcSet.name];
         for (let key in srcSet) {
           objects.push({
-            Key: srcSet[key],
+            Key: extractFileNameFromUrl(srcSet[key]),
           });
         }
         objects.push({
-          Key: unmarshalled[columns.original.name],
+          Key: extractFileNameFromUrl(unmarshalled[columns.original.name]),
         });
         item = {
           objects,

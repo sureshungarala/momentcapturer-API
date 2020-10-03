@@ -6,7 +6,11 @@ const {
   softDeleteIfExists,
   deleteImagesFromS3,
 } = require("./utils/apis");
-const { respond, API_IDENTIFIERS } = require("./utils/helpers");
+const {
+  respond,
+  extractFileNameFromUrl,
+  API_IDENTIFIERS,
+} = require("./utils/helpers");
 const columns = require("./config/columns.json");
 const config = require("./config/config.json");
 
@@ -38,11 +42,11 @@ module.exports.process = (event, context, callback) => {
       const srcSet = rowItemUnmarshalled[columns.srcSet.name];
       for (let key in srcSet) {
         objects.push({
-          Key: srcSet[key],
+          Key: extractFileNameFromUrl(srcSet[key]),
         });
       }
       objects.push({
-        Key: rowItemUnmarshalled[columns.original.name],
+        Key: extractFileNameFromUrl(rowItemUnmarshalled[columns.original.name]),
       });
       await Promise.all([
         softDeleteIfExists(dynamoDB, category, updateTime),

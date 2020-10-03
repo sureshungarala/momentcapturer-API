@@ -185,9 +185,15 @@ const respond = (apiIdentifier, success, callback, images) => {
   callback(null, response);
 };
 
+const extractFileNameFromUrl = (url) => {
+  const imageKeyPrefix = `https://${config.AWS_S3_BUCKET_NAME}.s3.${config.AWS_S3_REGION}.amazonaws.com/`;
+  return url.split(imageKeyPrefix)[1];
+};
+
 module.exports = {
   constructInitDynamoRowItem,
   getResolution,
   API_IDENTIFIERS,
+  extractFileNameFromUrl,
   respond,
 };
