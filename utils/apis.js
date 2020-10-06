@@ -178,7 +178,7 @@ const record = (dynamoDB, dynamoRowItem) => {
 };
 
 const compressAndStore = (
-  { s3, imageBuffer, dynamoRowItem, fileName, params },
+  { s3, imageBuffer, dynamoRowItem, fileName, params, currentTimeInMs },
   device
 ) => {
   let defer = Q.defer();
@@ -201,7 +201,7 @@ const compressAndStore = (
     .toBuffer((err, buffer, info) => {
       const Key = `${fileName}-${
         params.biotc ? columns.biotc.name + "-" + device : device
-      }.jpeg`;
+      }-${currentTimeInMs}.jpeg`;
       if (!err) {
         console.info(`Successfully compressed for ${device} with info `, info);
         s3.upload(

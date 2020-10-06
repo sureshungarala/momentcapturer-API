@@ -61,6 +61,7 @@ module.exports.process = (event, context, callback) => {
         dynamoRowItem,
         fileName,
         params,
+        currentTimeInMs: new Date().getTime(),
       };
       await Promise.all([
         compressAndStore(cAndsParams, config.HANDHELD),
