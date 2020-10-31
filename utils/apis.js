@@ -148,13 +148,14 @@ const deleteImagesFromS3 = async (s3, Objects) => {
  *
  * @param {Object DynamoDB_Constructor} dynamoDB
  * @param {Object DynamoRowItem} Item
+ * @param {Number} updateTime
  */
-const record = (dynamoDB, dynamoRowItem) => {
+const record = (dynamoDB, dynamoRowItem, updateTime) => {
   let defer = Q.defer();
   dynamoRowItem[columns.uploadTime.name][columns.uploadTime.type] =
     "" + new Date().getTime();
   dynamoRowItem[columns.updateTime.name][columns.updateTime.type] =
-    "" + new Date().getTime();
+    "" + (updateTime ? updateTime : new Date().getTime());
 
   dynamoDB.putItem(
     {
@@ -340,7 +341,7 @@ const updateImageIfExists = async (
 
     await Promise.all([
       softDeleteIfExists(dynamoDB, currentCategory, updateTime),
-      record(dynamoDB, rowItem),
+      record(dynamoDB, rowItem, updateTime + 1), // only adding 1ms to differentiate from original
     ]);
     console.info(`Successfully updated item's metadata `);
     defer.resolve(config.SUCCESS);
