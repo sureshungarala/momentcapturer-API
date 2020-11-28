@@ -210,6 +210,8 @@ const compressAndStore = (
             Key,
             Body: buffer,
             Bucket: config.AWS_S3_BUCKET_NAME,
+            CacheControl: "public, max-age=31536000",
+            ContentType: "image/jpeg",
           },
           (error, data) => {
             if (error) {
