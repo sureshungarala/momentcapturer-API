@@ -49,12 +49,6 @@ functions:
             arn: arn:aws:cognito-idp:${self:custom.cognitoConfig.COGNITO_REGION}:${self:custom.cognitoConfig.COGNITO_ACCOUNT_ID}:userpool/${self:custom.cognitoConfig.COGNITO_USERPOOL_ID}
             identitySource: method.request.header.Authorization
             type: COGNITO_USER_POOLS
-  createTable:
-    handler: dynamo.createTable
-    events:
-      - http:
-          path: createTable
-          method: get
   getData:
     handler: dynamo.getData
     events:
