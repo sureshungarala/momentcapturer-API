@@ -183,7 +183,7 @@ const respond = (apiIdentifier, success, callback, images, cacheAPI) => {
     ),
   };
   if (cacheAPI) {
-    response.headers["Cache-Control"] = "no-cache, max-age: 31536000";
+    response.headers["Cache-Control"] = "no-cache, max-age: 2592000";
   }
   callback(null, response);
 };
