@@ -165,7 +165,7 @@ const API_IDENTIFIERS = {
   },
 };
 
-const respond = (apiIdentifier, success, callback, images) => {
+const respond = (apiIdentifier, success, callback, images, cacheAPI) => {
   const response = {
     statusCode: success ? 200 : 500,
     headers: {
@@ -182,6 +182,9 @@ const respond = (apiIdentifier, success, callback, images) => {
       2
     ),
   };
+  if (cacheAPI) {
+    response.headers["Cache-Control"] = "no-cache, max-age: 31536000";
+  }
   callback(null, response);
 };
 

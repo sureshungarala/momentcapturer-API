@@ -104,7 +104,8 @@ module.exports.getData = (event, context, callback) => {
           API_IDENTIFIERS.FETCH_IMAGES.name,
           true,
           callback,
-          unmarshalled
+          unmarshalled,
+          true
         );
       }
     }
