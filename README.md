@@ -2,6 +2,12 @@
 
 ### https://serverless.com/blog/serverless-api-gateway-domain/
 
-- For serverless config, check out [moment-capturer](https://github.com/sureshUngarala/moment-capturer) repo.
+- Uses [Sharp](https://github.com/lovell/sharp) module to convert image to `progressive JPEG`s(for now. May be to AVIF in future considering wider browser compatibility) for multiple device types.
 
-- Serves APIs(Lambda) over api.momentcapturer.com(Set through API Gateway)
+- Serves APIs(_AWS_ **_Lambda_**) over api.momentcapturer.com(Set through **_API Gateway_**).
+
+- Stores processed images in _AWS_ **_S3_** bucket.
+
+- Records uploaded image metadata in _AWS_ **_DynamoDB_**.
+
+- For serverless config, check out [moment-capturer](https://github.com/sureshUngarala/moment-capturer) repo.
