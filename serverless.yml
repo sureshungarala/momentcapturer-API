@@ -56,6 +56,13 @@ functions:
           path: getData
           method: get
           cors: true
+  getBestImagePerCategory:
+    handler: dynamo.getBestImagePerCategory
+    events:
+      - http:
+          path: getBestImagePerCategory
+          method: get
+          cors: true
   editImageMetadata:
     handler: editImage.process
     events:

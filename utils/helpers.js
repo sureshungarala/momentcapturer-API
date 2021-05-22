@@ -148,6 +148,16 @@ const API_IDENTIFIERS = {
     success: "Successfully fetched data.",
     failure: "Fetched to fetch data :(",
   },
+  FETCH_BEST_IMAGE_PER_CATEGORY: {
+    name: "FETCH_BEST_IMAGE_PER_CATEGORY",
+    success: "Successfully fetched best image per category.",
+    failure: "Failed to fetch best image per category :(",
+  },
+  FETCH_LATEST_LANDSCAPE_PER_CATEGORY: {
+    name: "FETCH_LATEST_LANDSCAPE_PER_CATEGORY",
+    success: "Successfully fetched latest landscape image per category.",
+    failure: "Failed to fetch latest landscape image per category :(",
+  },
   CREATE_TABLE: {
     name: "CREATE_TABLE",
     success: "Created DynamoDB table :)",

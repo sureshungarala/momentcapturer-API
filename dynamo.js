@@ -111,3 +111,124 @@ module.exports.getData = (event, context, callback) => {
     }
   );
 };
+
+module.exports.getBestImagePerCategory = (event, context, callback) => {
+  const { category } = event.queryStringParameters;
+  let dynamoDB = new AWS.DynamoDB({
+    accessKeyId: config.AWS_ACCESS_KEY_ID,
+    secretAccessKey: config.AWS_SECRET_ACCESS_KEY,
+    region: config.AWS_REGION,
+    apiVersion: "2012-08-10",
+  });
+
+  dynamoDB.query(
+    {
+      TableName: config.AWS_DYNAMODB_TABLE,
+      ProjectionExpression: `${columns.category.name},${columns.biotc.name},${columns.srcSet.name}`,
+      KeyConditionExpression: `#category = :category`,
+      FilterExpression: `#biotc = :biotc AND #removed = :removed`,
+      ExpressionAttributeNames: {
+        "#category": columns.category.name,
+        "#biotc": columns.biotc.name,
+        "#removed": columns.removed.name,
+      },
+      ExpressionAttributeValues: {
+        ":category": {
+          [columns.category.type]: category,
+        },
+        ":biotc": {
+          [columns.biotc.type]: true,
+        },
+        ":removed": {
+          [columns.removed.type]: false,
+        },
+      },
+    },
+    (error, data) => {
+      if (error) {
+        console.error(
+          "Failed to query DynamoDB biotc data with error for category: ",
+          category,
+          error
+        );
+        respond(
+          API_IDENTIFIERS.FETCH_BEST_IMAGE_PER_CATEGORY.name,
+          false,
+          callback
+        );
+      } else {
+        const [biotc] = data.Items.map(AWS.DynamoDB.Converter.unmarshall);
+        console.log("unmarshalled for cards category ", category, biotc);
+        if (biotc) {
+          respond(
+            API_IDENTIFIERS.FETCH_BEST_IMAGE_PER_CATEGORY.name,
+            true,
+            callback,
+            biotc,
+            true
+          );
+        } else {
+          dynamoDB.query(
+            {
+              TableName: config.AWS_DYNAMODB_TABLE,
+              ProjectionExpression: `${columns.category.name},${columns.biotc.name},${columns.srcSet.name}`,
+              KeyConditionExpression: `#category = :category`,
+              FilterExpression: `#biotc = :biotc AND #portrait = :portrait AND #removed = :removed`,
+              ExpressionAttributeNames: {
+                "#category": columns.category.name,
+                "#biotc": columns.biotc.name,
+                "#portrait": columns.portrait.name,
+                "#removed": columns.removed.name,
+              },
+              ExpressionAttributeValues: {
+                ":category": {
+                  [columns.category.type]: category,
+                },
+                ":biotc": {
+                  [columns.biotc.type]: false,
+                },
+                ":portrait": {
+                  [columns.portrait.type]: false,
+                },
+                ":removed": {
+                  [columns.removed.type]: false,
+                },
+              },
+              ScanIndexForward: false,
+            },
+            (landscapeError, landscapeData) => {
+              if (landscapeError) {
+                console.error(
+                  "Failed to query DynamoDB latest landscape image data with error for categorie: ",
+                  category,
+                  landscapeError
+                );
+                respond(
+                  API_IDENTIFIERS.FETCH_LATEST_LANDSCAPE_PER_CATEGORY.name,
+                  false,
+                  callback
+                );
+              } else {
+                const [landscape] = landscapeData.Items.map(
+                  AWS.DynamoDB.Converter.unmarshall
+                );
+                console.log(
+                  "unmarshalled landscape data for cards category ",
+                  category,
+                  landscape
+                );
+                respond(
+                  API_IDENTIFIERS.FETCH_LATEST_LANDSCAPE_PER_CATEGORY.name,
+                  true,
+                  callback,
+                  landscape,
+                  true
+                );
+              }
+            }
+          );
+        }
+      }
+    }
+  );
+};
