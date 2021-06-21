@@ -160,6 +160,8 @@ module.exports.getBestImagePerCategory = (event, context, callback) => {
         const [biotc] = data.Items.map(AWS.DynamoDB.Converter.unmarshall);
         console.log("unmarshalled for cards category ", category, biotc);
         if (biotc) {
+          biotc["src"] = biotc[columns.srcSet.name][config.HANDHELD_MAX_WIDTH];
+          delete biotc[columns.srcSet.name];
           respond(
             API_IDENTIFIERS.FETCH_BEST_IMAGE_PER_CATEGORY.name,
             true,
@@ -212,6 +214,11 @@ module.exports.getBestImagePerCategory = (event, context, callback) => {
                 const [landscape] = landscapeData.Items.map(
                   AWS.DynamoDB.Converter.unmarshall
                 );
+                if (landscape) {
+                  landscape["src"] =
+                    landscape[columns.srcSet.name][config.HANDHELD_MAX_WIDTH];
+                  delete landscape[columns.srcSet.name];
+                }
                 console.log(
                   "unmarshalled landscape data for cards category ",
                   category,
