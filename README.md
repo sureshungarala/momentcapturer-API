@@ -4,7 +4,7 @@
 
 - Serves APIs(_AWS_ **_Lambda_**) over api.momentcapturer.com(Set through **_API Gateway_**).
 
-- Stores processed images in _AWS_ **_S3_** bucket.
+- Stores processed images in _AWS_ **_S3_** bucket and cached for 1 year.
 
 - Records uploaded image metadata in _AWS_ **_DynamoDB_**.
 
