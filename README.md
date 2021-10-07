@@ -1,6 +1,6 @@
 ## Serves APIs for momentcapturer.com via sub-domain api.momentcapturer.com
 
-- Uses [Sharp](https://github.com/lovell/sharp) module to convert image to `progressive JPEG`s(for now. May be to AVIF in future considering wider browser compatibility) for multiple device types.
+- Uses [Sharp](https://github.com/lovell/sharp) module to convert image to `progressive JPEG`s(for now. May be to AVIF / JPEG XL in future considering wider browser compatibility) for multiple device types.
 
 - Serves APIs(_AWS_ **_Lambda_**) over api.momentcapturer.com(Set through **_API Gateway_**).
 
