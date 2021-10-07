@@ -61,6 +61,9 @@ const getResolution = (
 ) => {
   const scrResolution = resolution.split(":").map(Number);
 
+  const calculateHeight = (size) =>
+    Math.round(Number(size) * (scrResolution[1] / scrResolution[0]));
+
   if (axis === config.WIDTH) {
     if (portrait) {
       if (device === config.HANDHELD) {
@@ -96,40 +99,31 @@ const getResolution = (
   } else {
     if (portrait) {
       if (device === config.HANDHELD) {
-        return config.LANDSCAPE_HANDHELD_WIDTH;
+        return calculateHeight(config.LANDSCAPE_HANDHELD_WIDTH);
       } else if (device === config.TABLET) {
-        return config.LANDSCAPE_TABLET_WIDTH;
+        return calculateHeight(config.LANDSCAPE_TABLET_WIDTH);
       } else if (device === config.LAPTOP) {
-        return config.LANDSCAPE_LAPTOP_WIDTH;
+        return calculateHeight(config.LANDSCAPE_LAPTOP_WIDTH);
       } else {
         return scrResolution[1];
       }
     } else if (biotc || panorama) {
       if (device === config.HANDHELD) {
-        return Math.round(
-          Number(config.BITOC_HANDHELD_WIDTH) *
-            (scrResolution[1] / scrResolution[0])
-        );
+        return calculateHeight(config.BITOC_HANDHELD_WIDTH);
       } else if (device === config.TABLET) {
-        return Math.round(
-          Number(config.BITOC_TABLET_WIDTH) *
-            (scrResolution[1] / scrResolution[0])
-        );
+        return calculateHeight(config.BITOC_TABLET_WIDTH);
       } else if (device === config.LAPTOP) {
-        return Math.round(
-          Number(config.BITOC_LAPTOP_WIDTH) *
-            (scrResolution[1] / scrResolution[0])
-        );
+        return calculateHeight(config.BITOC_LAPTOP_WIDTH);
       } else {
         return scrResolution[1];
       }
     } else {
       if (device === config.HANDHELD) {
-        return config.LANDSCAPE_HANDHELD_HEIGHT;
+        return calculateHeight(config.LANDSCAPE_HANDHELD_HEIGHT);
       } else if (device === config.TABLET) {
-        return config.LANDSCAPE_TABLET_HEIGHT;
+        return calculateHeight(config.LANDSCAPE_TABLET_HEIGHT);
       } else if (device === config.LAPTOP) {
-        return config.LANDSCAPE_LAPTOP_HEIGHT;
+        return calculateHeight(config.LANDSCAPE_LAPTOP_HEIGHT);
       } else {
         return scrResolution[1];
       }

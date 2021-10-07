@@ -187,7 +187,7 @@ const compressAndStore = (
     density: 515,
   })
     .jpeg({
-      quality: 85,
+      quality: 80,
       progressive: true,
       chromaSubsampling: "4:4:4",
       optimiseScans: true,
