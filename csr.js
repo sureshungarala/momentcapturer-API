@@ -22,8 +22,7 @@ const {
  */
 
 module.exports.process = (event, _context, callback) => {
-  const startTime = new Date();
-  console.info('startTime ', startTime.toISOString());
+  const startTime = performance.now();
   const { image, ...params } = JSON.parse(event.body);
 
   const s3 = new AWS.S3({
@@ -100,12 +99,9 @@ module.exports.process = (event, _context, callback) => {
         respond(API_IDENTIFIERS.CSR.name, false, callback);
       }
     } finally {
-      const endTime = new Date();
       console.info(
         `Finished running CSR. in 
-        ${((endTime.getTime() - startTime.getTime()) / 1000).toFixed(
-          2
-        )}secs, at ${endTime.toISOString()}`
+        ${(performance.now() - startTime).toFixed(2)}milliseconds`
       );
     }
   }
