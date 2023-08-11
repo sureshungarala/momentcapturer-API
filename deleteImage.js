@@ -1,34 +1,34 @@
-"use strict";
+'use strict';
 
-const AWS = require("aws-sdk");
+const AWS = require('aws-sdk');
 const {
   getDynamoRowItem,
   softDeleteIfExists,
   deleteImagesFromS3,
-} = require("./utils/apis");
+} = require('./utils/apis');
 const {
   respond,
   extractFileNameFromUrl,
   API_IDENTIFIERS,
-} = require("./utils/helpers");
-const columns = require("./config/columns.json");
-const config = require("./config/config.json");
+} = require('./utils/helpers');
+const columns = require('./config/columns.json');
+const config = require('./config/config.json');
 
-module.exports.process = (event, context, callback) => {
+module.exports.process = (event, _context, callback) => {
   const { category, updateTime } = JSON.parse(event.body);
 
   const dynamoDB = new AWS.DynamoDB({
     accessKeyId: config.AWS_ACCESS_KEY_ID,
     secretAccessKey: config.AWS_SECRET_ACCESS_KEY,
     region: config.AWS_REGION,
-    apiVersion: "2012-08-10",
+    apiVersion: '2012-08-10',
   });
 
   const s3 = new AWS.S3({
     accessKeyId: config.AWS_ACCESS_KEY_ID,
     secretAccessKey: config.AWS_SECRET_ACCESS_KEY,
     region: config.AWS_S3_REGION,
-    apiVersion: "2006-03-01",
+    apiVersion: '2006-03-01',
   });
 
   let executionCount = 0;

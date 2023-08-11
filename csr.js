@@ -1,51 +1,51 @@
-"use strict";
+'use strict';
 
-const AWS = require("aws-sdk");
-const config = require("./config/config.json");
-const columns = require("./config/columns.json");
+const AWS = require('aws-sdk');
+const config = require('./config/config.json');
+const columns = require('./config/columns.json');
 const {
   compressAndStore,
   checkIfBiotcExists,
   softDeleteExistingBiotcImage,
   deleteImagesFromS3,
   record,
-} = require("./utils/apis");
+} = require('./utils/apis');
 const {
   constructInitDynamoRowItem,
   respond,
   API_IDENTIFIERS,
-} = require("./utils/helpers");
+} = require('./utils/helpers');
 
 /**
  * C =>compress image, S=>store in s3, R=> record in dynamoDB
  * biotc => best image of the category
  */
 
-module.exports.process = (event, context, callback) => {
+module.exports.process = (event, _context, callback) => {
   const startTime = new Date();
-  console.info("startTime ", startTime.toISOString());
+  console.info('startTime ', startTime.toISOString());
   const { image, ...params } = JSON.parse(event.body);
 
   const s3 = new AWS.S3({
       accessKeyId: config.AWS_ACCESS_KEY_ID,
       secretAccessKey: config.AWS_SECRET_ACCESS_KEY,
       region: config.AWS_S3_REGION,
-      apiVersion: "2006-03-01",
+      apiVersion: '2006-03-01',
     }),
     dynamoDB = new AWS.DynamoDB({
       accessKeyId: config.AWS_ACCESS_KEY_ID,
       secretAccessKey: config.AWS_SECRET_ACCESS_KEY,
       region: config.AWS_REGION,
-      apiVersion: "2012-08-10",
+      apiVersion: '2012-08-10',
     });
 
   const fileName = params.imageName.substr(
     0,
-    params.imageName.lastIndexOf(".")
+    params.imageName.lastIndexOf('.')
   );
   const imageBuffer = Buffer.from(
-    image.replace(/^data:image\/\w+;base64,/, ""),
-    "base64"
+    image.replace(/^data:image\/\w+;base64,/, ''),
+    'base64'
   );
 
   const dynamoRowItem = constructInitDynamoRowItem(params);
@@ -81,7 +81,7 @@ module.exports.process = (event, context, callback) => {
               checkItemResp[columns.updateTime.name],
               params.category
             ),
-            deleteImagesFromS3(s3, checkItemResp["objects"]),
+            deleteImagesFromS3(s3, checkItemResp['objects']),
           ]);
         }
       }
@@ -89,9 +89,9 @@ module.exports.process = (event, context, callback) => {
       respond(API_IDENTIFIERS.CSR.name, true, callback);
     } catch (error) {
       console.error(
-        "CSR failed with error: ",
+        'CSR failed with error: ',
         error,
-        " :ExecutionCount: ",
+        ' :ExecutionCount: ',
         executionCount
       );
       if (executionCount < Math.round(config.MAX_EXECUTION_COUNT)) {
