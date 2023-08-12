@@ -1,6 +1,6 @@
 {
   "name": "api",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Serves APIs for momentcapturer.com over api.momentcapturer.com",
   "main": "handler.js",
   "scripts": {

@@ -178,6 +178,12 @@ const record = (dynamoDB, dynamoRowItem, updateTime) => {
   });
 };
 
+/**
+ *
+ * @param {Object} compressAndStoreParams
+ * @param {String} device
+ * @returns
+ */
 const compressAndStore = (
   { s3, imageBuffer, dynamoRowItem, fileName, params, currentTimeInMs },
   device

@@ -1,5 +1,6 @@
 'use strict';
 
+// 'aws-sdk' module is already available in the AWS Lambda runtime environment.
 const AWS = require('aws-sdk');
 const config = require('./config/config.json');
 const columns = require('./config/columns.json');
