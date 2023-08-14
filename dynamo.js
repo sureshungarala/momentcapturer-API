@@ -1,16 +1,16 @@
-"use strict";
+'use strict';
 
-const AWS = require("aws-sdk");
-const config = require("./config/config.json");
-const columns = require("./config/columns.json");
-const { respond, API_IDENTIFIERS } = require("./utils/helpers");
+const AWS = require('aws-sdk');
+const config = require('./config/config.json');
+const columns = require('./config/columns.json');
+const { respond, API_IDENTIFIERS } = require('./utils/helpers');
 
-module.exports.createTable = (event, context, callback) => {
+module.exports.createTable = (_event, _context, callback) => {
   let dynamoDB = new AWS.DynamoDB({
     accessKeyId: config.AWS_ACCESS_KEY_ID,
     secretAccessKey: config.AWS_SECRET_ACCESS_KEY,
     region: config.AWS_REGION,
-    apiVersion: "2012-08-10",
+    apiVersion: '2012-08-10',
   });
 
   const tableParams = {
@@ -18,52 +18,52 @@ module.exports.createTable = (event, context, callback) => {
     AttributeDefinitions: [
       {
         AttributeName: columns.category.name,
-        AttributeType: "S",
+        AttributeType: 'S',
       },
       {
         AttributeName: columns.updateTime.name,
-        AttributeType: "N",
+        AttributeType: 'N',
       },
     ],
     KeySchema: [
       {
         AttributeName: columns.category.name,
-        KeyType: "HASH",
+        KeyType: 'HASH',
       },
       {
         AttributeName: columns.updateTime.name,
-        KeyType: "RANGE",
+        KeyType: 'RANGE',
       },
     ],
-    BillingMode: "PROVISIONED",
+    BillingMode: 'PROVISIONED',
     ProvisionedThroughput: {
       ReadCapacityUnits: 10,
       WriteCapacityUnits: 10,
     },
     Tags: [
       {
-        Key: "Owner",
-        Value: "Suresh Ungarala:iamuvvsuresh:at:gmail.com",
+        Key: 'Owner',
+        Value: 'Suresh Ungarala:iamuvvsuresh:at:gmail.com',
       },
       {
-        Key: "Website",
-        Value: "momentcapturer.com",
+        Key: 'Website',
+        Value: 'momentcapturer.com',
       },
     ],
   };
 
   dynamoDB.createTable(tableParams, (error, data) => {
     if (error) {
-      console.error("Failed to create table with error: ", error);
+      console.error('Failed to create table with error: ', error);
       respond(API_IDENTIFIERS.CREATE_TABLE.name, false, callback);
     } else {
-      console.info("Table created with metadata: ", data);
+      console.info('Table created with metadata: ', data);
       respond(API_IDENTIFIERS.CREATE_TABLE.name, true, callback);
     }
   });
 };
 
-module.exports.getData = (event, context, callback) => {
+module.exports.getData = (event, _context, callback) => {
   const params = event.queryStringParameters,
     category = params.category;
 
@@ -71,7 +71,7 @@ module.exports.getData = (event, context, callback) => {
     accessKeyId: config.AWS_ACCESS_KEY_ID,
     secretAccessKey: config.AWS_SECRET_ACCESS_KEY,
     region: config.AWS_REGION,
-    apiVersion: "2012-08-10",
+    apiVersion: '2012-08-10',
   });
 
   dynamoDB.query(
@@ -81,14 +81,14 @@ module.exports.getData = (event, context, callback) => {
       KeyConditionExpression: `#category = :category`,
       FilterExpression: `#removed = :removed`,
       ExpressionAttributeNames: {
-        "#category": columns.category.name,
-        "#removed": columns.removed.name,
+        '#category': columns.category.name,
+        '#removed': columns.removed.name,
       },
       ExpressionAttributeValues: {
-        ":category": {
+        ':category': {
           [columns.category.type]: category,
         },
-        ":removed": {
+        ':removed': {
           [columns.removed.type]: false,
         },
       },
@@ -96,7 +96,7 @@ module.exports.getData = (event, context, callback) => {
     },
     (error, data) => {
       if (error) {
-        console.error("Failed to query DynamoDB with error: ", error);
+        console.error('Failed to query DynamoDB with error: ', error);
         respond(API_IDENTIFIERS.FETCH_IMAGES.name, false, callback);
       } else {
         const unmarshalled = data.Items.map(AWS.DynamoDB.Converter.unmarshall);
@@ -112,13 +112,13 @@ module.exports.getData = (event, context, callback) => {
   );
 };
 
-module.exports.getBestImagePerCategory = (event, context, callback) => {
+module.exports.getBestImagePerCategory = (event, _context, callback) => {
   const { category } = event.queryStringParameters;
   let dynamoDB = new AWS.DynamoDB({
     accessKeyId: config.AWS_ACCESS_KEY_ID,
     secretAccessKey: config.AWS_SECRET_ACCESS_KEY,
     region: config.AWS_REGION,
-    apiVersion: "2012-08-10",
+    apiVersion: '2012-08-10',
   });
 
   dynamoDB.query(
@@ -128,18 +128,18 @@ module.exports.getBestImagePerCategory = (event, context, callback) => {
       KeyConditionExpression: `#category = :category`,
       FilterExpression: `#biotc = :biotc AND #removed = :removed`,
       ExpressionAttributeNames: {
-        "#category": columns.category.name,
-        "#biotc": columns.biotc.name,
-        "#removed": columns.removed.name,
+        '#category': columns.category.name,
+        '#biotc': columns.biotc.name,
+        '#removed': columns.removed.name,
       },
       ExpressionAttributeValues: {
-        ":category": {
+        ':category': {
           [columns.category.type]: category,
         },
-        ":biotc": {
+        ':biotc': {
           [columns.biotc.type]: true,
         },
-        ":removed": {
+        ':removed': {
           [columns.removed.type]: false,
         },
       },
@@ -147,7 +147,7 @@ module.exports.getBestImagePerCategory = (event, context, callback) => {
     (error, data) => {
       if (error) {
         console.error(
-          "Failed to query DynamoDB biotc data with error for category: ",
+          'Failed to query DynamoDB biotc data with error for category: ',
           category,
           error
         );
@@ -158,9 +158,9 @@ module.exports.getBestImagePerCategory = (event, context, callback) => {
         );
       } else {
         const [biotc] = data.Items.map(AWS.DynamoDB.Converter.unmarshall);
-        console.log("unmarshalled for cards category ", category, biotc);
+        console.log('unmarshalled for cards category ', category, biotc);
         if (biotc) {
-          biotc["src"] = biotc[columns.srcSet.name][config.HANDHELD_MAX_WIDTH];
+          biotc['src'] = biotc[columns.srcSet.name][config.HANDHELD_MAX_WIDTH];
           delete biotc[columns.srcSet.name];
           respond(
             API_IDENTIFIERS.FETCH_BEST_IMAGE_PER_CATEGORY.name,
@@ -177,22 +177,22 @@ module.exports.getBestImagePerCategory = (event, context, callback) => {
               KeyConditionExpression: `#category = :category`,
               FilterExpression: `#biotc = :biotc AND #portrait = :portrait AND #removed = :removed`,
               ExpressionAttributeNames: {
-                "#category": columns.category.name,
-                "#biotc": columns.biotc.name,
-                "#portrait": columns.portrait.name,
-                "#removed": columns.removed.name,
+                '#category': columns.category.name,
+                '#biotc': columns.biotc.name,
+                '#portrait': columns.portrait.name,
+                '#removed': columns.removed.name,
               },
               ExpressionAttributeValues: {
-                ":category": {
+                ':category': {
                   [columns.category.type]: category,
                 },
-                ":biotc": {
+                ':biotc': {
                   [columns.biotc.type]: false,
                 },
-                ":portrait": {
+                ':portrait': {
                   [columns.portrait.type]: false,
                 },
-                ":removed": {
+                ':removed': {
                   [columns.removed.type]: false,
                 },
               },
@@ -201,7 +201,7 @@ module.exports.getBestImagePerCategory = (event, context, callback) => {
             (landscapeError, landscapeData) => {
               if (landscapeError) {
                 console.error(
-                  "Failed to query DynamoDB latest landscape image data with error for categorie: ",
+                  'Failed to query DynamoDB latest landscape image data with error for categorie: ',
                   category,
                   landscapeError
                 );
@@ -215,12 +215,12 @@ module.exports.getBestImagePerCategory = (event, context, callback) => {
                   AWS.DynamoDB.Converter.unmarshall
                 );
                 if (landscape) {
-                  landscape["src"] =
+                  landscape['src'] =
                     landscape[columns.srcSet.name][config.HANDHELD_MAX_WIDTH];
                   delete landscape[columns.srcSet.name];
                 }
                 console.log(
-                  "unmarshalled landscape data for cards category ",
+                  'unmarshalled landscape data for cards category ',
                   category,
                   landscape
                 );

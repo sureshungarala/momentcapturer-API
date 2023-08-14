@@ -1,11 +1,11 @@
-"use strict";
+'use strict';
 
-const AWS = require("aws-sdk");
-const { updateImageIfExists } = require("./utils/apis");
-const { respond, API_IDENTIFIERS } = require("./utils/helpers");
-const config = require("./config/config.json");
+const AWS = require('aws-sdk');
+const { updateImageIfExists } = require('./utils/apis');
+const { respond, API_IDENTIFIERS } = require('./utils/helpers');
+const config = require('./config/config.json');
 
-module.exports.process = (event, context, callback) => {
+module.exports.process = (event, _context, callback) => {
   const { currentCategory, newCategory, description, updateTime } = JSON.parse(
     event.body
   );
@@ -14,7 +14,7 @@ module.exports.process = (event, context, callback) => {
     accessKeyId: config.AWS_ACCESS_KEY_ID,
     secretAccessKey: config.AWS_SECRET_ACCESS_KEY,
     region: config.AWS_REGION,
-    apiVersion: "2012-08-10",
+    apiVersion: '2012-08-10',
   });
 
   let executionCount = 0;
