@@ -199,7 +199,7 @@ const compressAndStore = (
         optimiseScans: true,
       })
       .resize({
-        //default aspect ratio 3:2
+        // preserving aspect ratio
         width: getResolution(device, config.WIDTH, params),
         height: getResolution(device, config.HEIGHT, params),
         fit: 'contain',
@@ -235,6 +235,7 @@ const compressAndStore = (
                   device === config.TABLET ||
                   device === config.LAPTOP
                 ) {
+                  // Keeping max-width in sync with css breakpoints on client side
                   dynamoRowItem[columns.srcSet.name][columns.srcSet.type][
                     device === config.HANDHELD
                       ? config.HANDHELD_MAX_WIDTH
