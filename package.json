@@ -1,6 +1,6 @@
 {
   "name": "api",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "description": "Serves APIs for momentcapturer.com over api.momentcapturer.com",
   "main": "handler.js",
   "scripts": {
@@ -14,10 +14,9 @@
   "author": "Suresh Ungarala (iamuvvsuresh@gmail.com)",
   "license": "ISC",
   "devDependencies": {
-    "serverless-domain-manager": "^3.3.1"
+    "serverless-domain-manager": "^7.1.1"
   },
   "dependencies": {
-    "q": "^1.5.1",
-    "sharp": "^0.23.4"
+    "sharp": "^0.32.4"
   }
 }

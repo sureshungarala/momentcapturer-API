@@ -2,6 +2,8 @@
 
 - Uses [Sharp](https://github.com/lovell/sharp) module to convert image to `progressive JPEG`s(for now. May be to AVIF / JPEG XL in future considering wider browser compatibility) for multiple device types.
 
+  - Install Sharp module for target(Lambda) runtime platform with `npm install --platform=linux --arch=x64 sharp`
+
 - Serves APIs(_AWS_ **_Lambda_**) over api.momentcapturer.com(Set through **_API Gateway_**).
 
 - Stores processed images in _AWS_ **_S3_** bucket and cached for 1 year.
