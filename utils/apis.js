@@ -189,7 +189,6 @@ const compressAndStore = (
     .jpeg({
       quality: 80,
       progressive: true,
-      chromaSubsampling: "4:4:4",
       optimiseScans: true,
     })
     .resize({
