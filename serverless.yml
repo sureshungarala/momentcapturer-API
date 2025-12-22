@@ -18,7 +18,9 @@ org: venkatsuresh
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs24.x
+  stage: dev
+  region: ap-south-1
   logs:
     restApi: true
 

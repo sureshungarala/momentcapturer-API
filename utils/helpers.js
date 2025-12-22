@@ -169,7 +169,7 @@ const API_IDENTIFIERS = {
   },
 };
 
-const respond = (apiIdentifier, success, callback, images, cacheAPI) => {
+const respond = (apiIdentifier, success, images, cacheAPI) => {
   const response = {
     statusCode: success ? 200 : 500,
     headers: {
@@ -189,7 +189,7 @@ const respond = (apiIdentifier, success, callback, images, cacheAPI) => {
   if (cacheAPI) {
     response.headers["Cache-Control"] = "no-cache, max-age: 2592000";
   }
-  callback(null, response);
+  return response;
 };
 
 const extractFileNameFromUrl = (url) => {

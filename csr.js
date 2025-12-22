@@ -21,7 +21,7 @@ const {
  * biotc => best image of the category
  */
 
-module.exports.process = (event, context, callback) => {
+module.exports.process = async (event) => {
   const startTime = new Date();
   console.info("startTime ", startTime.toISOString());
   const { image, ...params } = JSON.parse(event.body);
@@ -50,9 +50,11 @@ module.exports.process = (event, context, callback) => {
 
   const dynamoRowItem = constructInitDynamoRowItem(params);
 
-  let executionCount = 0; // failure threshold -> execution count
+  let success = false;
+  let executionCount = 0;
+  const maxRetries = Math.round(config.MAX_EXECUTION_COUNT);
 
-  async function executeCSR() {
+  while (executionCount < maxRetries && !success) {
     executionCount++;
     try {
       const cAndsParams = {
@@ -86,7 +88,7 @@ module.exports.process = (event, context, callback) => {
         }
       }
       await record(dynamoDB, dynamoRowItem);
-      respond(API_IDENTIFIERS.CSR.name, true, callback);
+      success = true;
     } catch (error) {
       console.error(
         "CSR failed with error: ",
@@ -94,21 +96,16 @@ module.exports.process = (event, context, callback) => {
         " :ExecutionCount: ",
         executionCount
       );
-      if (executionCount < Math.round(config.MAX_EXECUTION_COUNT)) {
-        executeCSR();
-      } else {
-        respond(API_IDENTIFIERS.CSR.name, false, callback);
-      }
-    } finally {
-      const endTime = new Date();
-      console.info(
-        `Finished running CSR. in 
-        ${((endTime.getTime() - startTime.getTime()) / 1000).toFixed(
-          2
-        )}secs, at ${endTime.toISOString()}`
-      );
     }
   }
 
-  executeCSR();
+  const endTime = new Date();
+  console.info(
+    `Finished running CSR. in 
+    ${((endTime.getTime() - startTime.getTime()) / 1000).toFixed(
+      2
+    )}secs, at ${endTime.toISOString()}`
+  );
+
+  return respond(API_IDENTIFIERS.CSR.name, success);
 };

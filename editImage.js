@@ -5,7 +5,7 @@ const { updateImageIfExists } = require("./utils/apis");
 const { respond, API_IDENTIFIERS } = require("./utils/helpers");
 const config = require("./config/config.json");
 
-module.exports.process = (event, context, callback) => {
+module.exports.process = async (event) => {
   const { currentCategory, newCategory, description, updateTime } = JSON.parse(
     event.body
   );
@@ -17,9 +17,11 @@ module.exports.process = (event, context, callback) => {
     apiVersion: "2012-08-10",
   });
 
+  let success = false;
   let executionCount = 0;
+  const maxRetries = Math.round(config.MAX_EXECUTION_COUNT);
 
-  async function updateImageMetadata() {
+  while (executionCount < maxRetries && !success) {
     executionCount++;
     try {
       await updateImageIfExists(
@@ -29,19 +31,14 @@ module.exports.process = (event, context, callback) => {
         description,
         updateTime
       );
-      respond(API_IDENTIFIERS.EDIT_IMAGE.name, true, callback);
+      success = true;
     } catch (error) {
       console.error(
         `${API_IDENTIFIERS.EDIT_IMAGE.failure} with error ${error} with executionCount `,
         executionCount
       );
-      if (executionCount < Math.round(config.MAX_EXECUTION_COUNT)) {
-        updateImageMetadata();
-      } else {
-        respond(API_IDENTIFIERS.EDIT_IMAGE.name, false, callback);
-      }
     }
   }
 
-  updateImageMetadata();
+  return respond(API_IDENTIFIERS.EDIT_IMAGE.name, success);
 };

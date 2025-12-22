@@ -14,7 +14,7 @@ const {
 const columns = require("./config/columns.json");
 const config = require("./config/config.json");
 
-module.exports.process = (event, context, callback) => {
+module.exports.process = async (event) => {
   const { category, updateTime } = JSON.parse(event.body);
 
   const dynamoDB = new AWS.DynamoDB({
@@ -31,9 +31,11 @@ module.exports.process = (event, context, callback) => {
     apiVersion: "2006-03-01",
   });
 
+  let success = false;
   let executionCount = 0;
+  const maxRetries = Math.round(config.MAX_EXECUTION_COUNT);
 
-  async function deleteImage() {
+  while (executionCount < maxRetries && !success) {
     executionCount++;
     try {
       const rowItem = await getDynamoRowItem(dynamoDB, category, updateTime);
@@ -52,19 +54,14 @@ module.exports.process = (event, context, callback) => {
         softDeleteIfExists(dynamoDB, category, updateTime),
         deleteImagesFromS3(s3, objects),
       ]);
-      respond(API_IDENTIFIERS.DELETE_IMAGE.name, true, callback);
+      success = true;
     } catch (error) {
       console.error(
         `${API_IDENTIFIERS.DELETE_IMAGE.failure} with error ${error} with executionCount `,
         executionCount
       );
-      if (executionCount < Math.round(config.MAX_EXECUTION_COUNT)) {
-        deleteImage();
-      } else {
-        respond(API_IDENTIFIERS.DELETE_IMAGE.name, false, callback);
-      }
     }
   }
 
-  deleteImage();
+  return respond(API_IDENTIFIERS.DELETE_IMAGE.name, success);
 };
