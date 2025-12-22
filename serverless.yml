@@ -21,6 +21,7 @@ provider:
   runtime: nodejs24.x
   stage: dev
   region: ap-south-1
+  profile: personal
   logs:
     restApi: true
 
