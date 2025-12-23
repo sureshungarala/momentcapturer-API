@@ -14,7 +14,8 @@
   "author": "Suresh Ungarala (iamuvvsuresh@gmail.com)",
   "license": "ISC",
   "devDependencies": {
-    "serverless-domain-manager": "8.0.0"
+    "serverless-domain-manager": "8.0.0",
+    "tslib": "2.8.1"
   },
   "dependencies": {
     "aws-sdk": "^2.1691.0",

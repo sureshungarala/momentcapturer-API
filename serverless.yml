@@ -20,7 +20,7 @@ provider:
   name: aws
   runtime: nodejs24.x
   stage: dev
-  region: ap-south-1
+  region: us-east-1
   profile: personal
   logs:
     restApi: true
