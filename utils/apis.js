@@ -158,9 +158,10 @@ const compressAndStore = async (
       })
       .resize({
         width: getResolution(device, config.WIDTH, params),
-        height: getResolution(device, config.HEIGHT, params),
-        fit: "contain",
-        background: "rgb(255, 255, 255, 1)",
+        // Height omitted to preserve original aspect ratio (auto-calculated by Sharp)
+        // height: getResolution(device, config.HEIGHT, params),
+        // fit: "contain",
+        // background: "rgb(255, 255, 255, 1)",
       })
       .toBuffer();
 
@@ -222,10 +223,7 @@ const getDynamoRowItem = async (dynamoDB, category, updateTime) => {
     console.info(`Successfully fetched item from DynamoDB `, data);
     return data.Item;
   } catch (err) {
-    console.error(
-      `Failed to get matching item from DynamoDB with error `,
-      err
-    );
+    console.error(`Failed to get matching item from DynamoDB with error `, err);
     throw config.FAILURE;
   }
 };
