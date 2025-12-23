@@ -22,6 +22,7 @@ provider:
   stage: dev
   region: us-east-1
   profile: personal
+  architecture: arm64
   logs:
     restApi: true
 
@@ -41,7 +42,7 @@ functions:
   csr:
     handler: csr.process
     memorySize: 1536
-    timeout: 10
+    timeout: 30
     events:
       - http:
           path: csr
