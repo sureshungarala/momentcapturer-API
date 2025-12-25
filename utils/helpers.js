@@ -137,6 +137,16 @@ const API_IDENTIFIERS = {
     success: "Executed CSR :)",
     failure: "Failed to execute CSR :(",
   },
+  GET_UPLOAD_URL: {
+    name: "GET_UPLOAD_URL",
+    success: "Generated upload URL successfully.",
+    failure: "Failed to generate upload URL.",
+  },
+  PROCESS_UPLOAD: {
+    name: "PROCESS_UPLOAD",
+    success: "Image processed successfully.",
+    failure: "Failed to process image.",
+  },
   FETCH_IMAGES: {
     name: "FETCH_IMAGES",
     success: "Successfully fetched data.",

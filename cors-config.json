@@ -1,0 +1,13 @@
+{
+  "CORSRules": [
+    {
+      "AllowedHeaders": ["*"],
+      "AllowedMethods": ["GET", "PUT"],
+      "AllowedOrigins": [
+        "http://momentcapturer.com",
+        "https://momentcapturer.com"
+      ],
+      "ExposeHeaders": ["ETag"]
+    }
+  ]
+}

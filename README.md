@@ -34,6 +34,30 @@ serverless deploy
 
 > **Note**: Keep `sharp` version in `package.json` aligned with the binary versions above.
 
+### S3 CORS Configuration (for Pre-Signed URL Uploads)
+
+The `getUploadUrl` endpoint generates pre-signed URLs that allow browsers to upload directly to S3. For this to work, the S3 bucket must have CORS configured to allow `PUT` requests from the frontend origin.
+
+**Apply CORS configuration:**
+
+```bash
+aws s3api put-bucket-cors --bucket moments-redefined --profile personal --cors-configuration file://cors-config.json
+```
+
+**Verify CORS:**
+
+```bash
+aws s3api get-bucket-cors --bucket moments-redefined --profile personal
+```
+
+**Required CORS rules** (see `cors-config.json`):
+
+- `AllowedMethods`: Must include `PUT` (in addition to `GET`)
+- `AllowedOrigins`: Must include `https://momentcapturer.com`
+- `AllowedHeaders`: `*` (to allow Content-Type header)
+
+> **Why is this needed?** When browsers make cross-origin requests directly to S3 (e.g., uploading via pre-signed URL), S3 enforces CORS. Server-side uploads from Lambda don't require CORS since they're server-to-server.
+
 #### Credits:
 
 - https://serverless.com/blog/serverless-api-gateway-domain/
