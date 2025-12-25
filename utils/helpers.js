@@ -197,7 +197,8 @@ const respond = (apiIdentifier, success, images, cacheAPI) => {
     ),
   };
   if (cacheAPI) {
-    response.headers["Cache-Control"] = "no-cache, max-age: 2592000";
+    // Don't let browsers/CDNs cache API responses - React Query handles caching
+    response.headers["Cache-Control"] = "no-store";
   }
   return response;
 };
